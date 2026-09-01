@@ -49,8 +49,15 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Filter products by search query
-  const filteredProducts = products.filter(p => {
+  // Filter products by in-stock status and search query (Hide out of stock items from customer view)
+  const inStockProducts = products.filter(p => {
+    if (p.variants && p.variants.length > 0) {
+      return p.variants.some(v => (v.stock || 0) > 0);
+    }
+    return (p.stock || 0) > 0;
+  });
+
+  const filteredProducts = inStockProducts.filter(p => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase().trim();
     return (

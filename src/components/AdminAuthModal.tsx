@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, KeyRound, ShieldCheck, X, ArrowRight, Eye, EyeOff, Globe } from 'lucide-react';
+import { Lock, KeyRound, ShieldCheck, X, Eye, EyeOff, Globe } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 interface AdminAuthModalProps {
@@ -8,7 +8,7 @@ interface AdminAuthModalProps {
 }
 
 export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({ isOpen, onClose }) => {
-  const { isAdminAuthenticated, loginAsAdmin, adminPin } = useStore();
+  const { loginAsAdmin } = useStore();
   const [enteredPin, setEnteredPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -28,28 +28,8 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({ isOpen, onClose 
       setEnteredPin('');
       onClose();
     } else {
-      setErrorMsg('ভুল পিন কোড! ডিফল্ট পিন: 1234');
+      setErrorMsg('ভুল পিন কোড! সঠিক পিন প্রদান করুন।');
     }
-  };
-
-  const handleQuickDigit = (digit: string) => {
-    if (enteredPin.length < 6) {
-      const nextPin = enteredPin + digit;
-      setEnteredPin(nextPin);
-      setErrorMsg('');
-      if (nextPin === adminPin || nextPin === '1234') {
-        setTimeout(() => {
-          loginAsAdmin(nextPin);
-          setEnteredPin('');
-          onClose();
-        }, 150);
-      }
-    }
-  };
-
-  const handleBackspace = () => {
-    setEnteredPin(prev => prev.slice(0, -1));
-    setErrorMsg('');
   };
 
   return (
@@ -92,8 +72,11 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({ isOpen, onClose 
             </p>
           </div>
 
-          {/* PIN Display Field */}
+          {/* PIN Input Field */}
           <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">
+              সিকিউরিটি পিন / পাসকোড:
+            </label>
             <div className="relative flex items-center">
               <input
                 id="admin-pin-input"
@@ -103,62 +86,23 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({ isOpen, onClose 
                   setEnteredPin(e.target.value);
                   setErrorMsg('');
                 }}
-                maxLength={6}
-                placeholder="PIN দিন (Default: 1234)"
-                className="w-full text-center tracking-widest text-lg font-bold py-2.5 px-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 font-mono"
+                placeholder="পিন কোড লিখুন..."
+                className="w-full text-center tracking-widest text-lg font-bold py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 font-mono transition-all"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={() => setShowPin(!showPin)}
-                className="absolute right-3 p-1 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+                title={showPin ? 'লুকান' : 'দেখুন'}
               >
                 {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
 
-            {errorMsg ? (
-              <p className="text-[11px] text-rose-600 font-bold text-center">{errorMsg}</p>
-            ) : (
-              <p className="text-[10px] text-slate-400 text-center font-medium">
-                ডিফল্ট পাসকোড: <span className="font-bold text-amber-800 font-mono">1234</span> (সেটিংস থেকে পরিবর্তনযোগ্য)
-              </p>
+            {errorMsg && (
+              <p className="text-xs text-rose-600 font-bold text-center mt-1">{errorMsg}</p>
             )}
-          </div>
-
-          {/* Touch Keypad */}
-          <div className="grid grid-cols-3 gap-2 pt-1">
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-              <button
-                key={num}
-                type="button"
-                onClick={() => handleQuickDigit(num)}
-                className="py-2.5 bg-slate-100 hover:bg-amber-100 text-slate-800 hover:text-amber-900 font-bold text-base rounded-xl transition-colors active:scale-95 shadow-2xs font-mono"
-              >
-                {num}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setEnteredPin('')}
-              className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-colors"
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDigit('0')}
-              className="py-2.5 bg-slate-100 hover:bg-amber-100 text-slate-800 hover:text-amber-900 font-bold text-base rounded-xl transition-colors active:scale-95 shadow-2xs font-mono"
-            >
-              0
-            </button>
-            <button
-              type="button"
-              onClick={handleBackspace}
-              className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-colors"
-            >
-              ⌫ Del
-            </button>
           </div>
 
           {/* Submit Button */}

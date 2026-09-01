@@ -1,3 +1,12 @@
+export interface ProductVariant {
+  id: string;
+  unit: string; // e.g. "১০০ গ্রাম", "২৫০ গ্রাম", "৫০০ গ্রাম", "১ কেজি"
+  price: number;
+  costPrice?: number;
+  stock: number;
+  sku?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -14,7 +23,8 @@ export interface Product {
   salesCount: number;
   isPopular?: boolean;
   isSpecial?: boolean;
-  unit?: string; // e.g. "plate", "portion", "pc", "kg"
+  unit?: string; // e.g. "250g Pack"
+  variants?: ProductVariant[]; // Multiple packet sizes/units
   tags?: string[];
   createdAt: string;
 }
@@ -29,6 +39,7 @@ export interface Category {
 
 export interface CartItem {
   product: Product;
+  selectedVariant?: ProductVariant;
   quantity: number;
   specialInstructions?: string;
 }
@@ -44,6 +55,7 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   unit?: string;
+  variantId?: string;
 }
 
 export interface Order {

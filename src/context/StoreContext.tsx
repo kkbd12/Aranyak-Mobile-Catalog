@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import {
   Product,
+  ProductVariant,
   Category,
   CartItem,
   Order,
@@ -74,9 +75,9 @@ interface StoreContextType {
   setOrderType: (type: OrderType) => void;
   
   // Cart Actions
-  addToCart: (product: Product, quantity?: number) => boolean;
-  removeFromCart: (productId: string) => void;
-  updateCartQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, variant?: ProductVariant, quantity?: number) => boolean;
+  removeFromCart: (productId: string, variantId?: string) => void;
+  updateCartQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
   
   // Product & Category Management
@@ -88,6 +89,7 @@ interface StoreContextType {
   
   // Inventory Automated Actions
   adjustStock: (productId: string, deltaQuantity: number, note?: string) => void;
+  adjustVariantStock: (productId: string, variantId: string, deltaQuantity: number, note?: string) => void;
   setExactStock: (productId: string, newStock: number, note?: string) => void;
   quickBatchRestock: (category?: string, addAmount?: number) => void;
   
@@ -395,27 +397,49 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [isAdminAuthenticated]);
 
   // Derived Counts
-  const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= p.lowStockThreshold).length;
-  const outOfStockCount = products.filter(p => p.stock <= 0).length;
+  const lowStockCount = products.filter(p => {
+    const totalStock = p.variants && p.variants.length > 0
+      ? p.variants.reduce((s, v) => s + (v.stock || 0), 0)
+      : p.stock;
+    return totalStock > 0 && totalStock <= p.lowStockThreshold;
+  }).length;
+
+  const outOfStockCount = products.filter(p => {
+    const totalStock = p.variants && p.variants.length > 0
+      ? p.variants.reduce((s, v) => s + (v.stock || 0), 0)
+      : p.stock;
+    return totalStock <= 0;
+  }).length;
+
   const totalProductsCount = products.length;
 
   const cartTotalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotalAmount = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const cartTotalAmount = cart.reduce((sum, item) => {
+    const itemPrice = item.selectedVariant?.price ?? item.product.price;
+    return sum + (itemPrice * item.quantity);
+  }, 0);
 
   // Cart Actions
-  const addToCart = useCallback((product: Product, quantity = 1): boolean => {
+  const addToCart = useCallback((product: Product, variant?: ProductVariant, quantity = 1): boolean => {
     const currentProduct = products.find(p => p.id === product.id) || product;
-    if (currentProduct.stock <= 0) {
+    const selectedVariant = variant || (currentProduct.variants && currentProduct.variants.length > 0 ? currentProduct.variants[0] : undefined);
+    const availableStock = selectedVariant ? selectedVariant.stock : currentProduct.stock;
+
+    if (availableStock <= 0) {
       return false;
     }
 
     setCart(prevCart => {
-      const existingIndex = prevCart.findIndex(item => item.product.id === product.id);
+      const existingIndex = prevCart.findIndex(item => 
+        item.product.id === product.id && 
+        (selectedVariant ? item.selectedVariant?.id === selectedVariant.id : !item.selectedVariant)
+      );
+
       if (existingIndex > -1) {
         const existingItem = prevCart[existingIndex];
         const newQty = existingItem.quantity + quantity;
         
-        if (newQty > currentProduct.stock) {
+        if (newQty > availableStock) {
           return prevCart;
         }
 
@@ -424,13 +448,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           ...existingItem,
           quantity: newQty,
           product: currentProduct,
+          selectedVariant: selectedVariant,
         };
         return updated;
       } else {
-        if (quantity > currentProduct.stock) {
+        if (quantity > availableStock) {
           return prevCart;
         }
-        return [...prevCart, { product: currentProduct, quantity }];
+        return [...prevCart, { product: currentProduct, selectedVariant, quantity }];
       }
     });
 
@@ -440,27 +465,36 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return true;
   }, [products, settings.soundEffects]);
 
-  const removeFromCart = useCallback((productId: string) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+  const removeFromCart = useCallback((productId: string, variantId?: string) => {
+    setCart(prev => prev.filter(item => {
+      if (item.product.id !== productId) return true;
+      if (variantId) return item.selectedVariant?.id !== variantId;
+      return false;
+    }));
     if (settings.soundEffects) {
       playRemoveSound();
     }
   }, [settings.soundEffects]);
 
-  const updateCartQuantity = useCallback((productId: string, quantity: number) => {
+  const updateCartQuantity = useCallback((productId: string, quantity: number, variantId?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, variantId);
       return;
     }
 
     const currentProduct = products.find(p => p.id === productId);
-    if (currentProduct && quantity > currentProduct.stock) {
-      return;
+    if (currentProduct) {
+      let maxStock = currentProduct.stock;
+      if (variantId && currentProduct.variants) {
+        const v = currentProduct.variants.find(varItem => varItem.id === variantId);
+        if (v) maxStock = v.stock;
+      }
+      if (quantity > maxStock) return;
     }
 
     setCart(prev =>
       prev.map(item => {
-        if (item.product.id === productId) {
+        if (item.product.id === productId && (!variantId || item.selectedVariant?.id === variantId)) {
           return { ...item, quantity };
         }
         return item;
@@ -679,13 +713,71 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     );
   }, []);
 
+  const adjustVariantStock = useCallback((productId: string, variantId: string, deltaQuantity: number, note?: string) => {
+    setProducts(prev =>
+      prev.map(p => {
+        if (p.id === productId && p.variants && p.variants.length > 0) {
+          const updatedVariants = p.variants.map(v => {
+            if (v.id === variantId) {
+              const newVarStock = Math.max(0, (v.stock || 0) + deltaQuantity);
+              return { ...v, stock: newVarStock };
+            }
+            return v;
+          });
+          const newTotalStock = updatedVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+          const targetVar = p.variants.find(v => v.id === variantId);
+
+          const log: InventoryLog = {
+            id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            timestamp: new Date().toISOString(),
+            productId: p.id,
+            productName: `${p.name} (${targetVar?.unit || 'Variant'})`,
+            changeType: deltaQuantity >= 0 ? 'manual_restock' : 'stock_adjustment',
+            quantityChange: deltaQuantity,
+            previousStock: targetVar?.stock || 0,
+            newStock: Math.max(0, (targetVar?.stock || 0) + deltaQuantity),
+            note: note || `Variant stock updated (${targetVar?.unit})`
+          };
+
+          setInventoryLogs(logs => [log, ...logs]);
+
+          try {
+            const prodRef = doc(db, 'products', p.id);
+            updateDoc(prodRef, { 
+              variants: updatedVariants,
+              stock: newTotalStock 
+            }).catch(err => console.warn(err));
+
+            const logRef = doc(db, 'stockLogs', log.id);
+            setDoc(logRef, log).catch(err => console.warn(err));
+          } catch (err) {
+            console.warn(err);
+          }
+
+          return { ...p, variants: updatedVariants, stock: newTotalStock };
+        }
+        return p;
+      })
+    );
+  }, []);
+
   const quickBatchRestock = useCallback((categoryId?: string, addAmount = 10) => {
     setProducts(prev => {
       const updatedProducts = prev.map(p => {
         if (!categoryId || categoryId === 'all' || p.category === categoryId) {
-          if (p.stock <= p.lowStockThreshold) {
+          const currentTotal = p.variants && p.variants.length > 0 
+            ? p.variants.reduce((s, v) => s + (v.stock || 0), 0)
+            : p.stock;
+
+          if (currentTotal <= p.lowStockThreshold) {
+            let updatedVariants = p.variants ? [...p.variants] : undefined;
+            if (updatedVariants && updatedVariants.length > 0) {
+              updatedVariants = updatedVariants.map(v => ({ ...v, stock: (v.stock || 0) + addAmount }));
+            }
             const prevStock = p.stock;
-            const newStock = prevStock + addAmount;
+            const newStock = updatedVariants 
+              ? updatedVariants.reduce((s, v) => s + (v.stock || 0), 0)
+              : prevStock + addAmount;
 
             const log: InventoryLog = {
               id: `log-${Date.now()}-${p.id}`,
@@ -702,14 +794,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
             try {
               const prodRef = doc(db, 'products', p.id);
-              updateDoc(prodRef, { stock: newStock }).catch(err => console.warn(err));
+              updateDoc(prodRef, { 
+                ...(updatedVariants ? { variants: updatedVariants } : {}),
+                stock: newStock 
+              }).catch(err => console.warn(err));
               const logRef = doc(db, 'stockLogs', log.id);
               setDoc(logRef, log).catch(err => console.warn(err));
             } catch (err) {
               console.warn(err);
             }
 
-            return { ...p, stock: newStock };
+            return { 
+              ...p, 
+              ...(updatedVariants ? { variants: updatedVariants } : {}),
+              stock: newStock 
+            };
           }
         }
         return p;
@@ -733,14 +832,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Check if all cart quantities are still available
     for (const item of cart) {
       const prod = products.find(p => p.id === item.product.id);
-      if (!prod || prod.stock < item.quantity) {
-        alert(`দুঃখিত, "${item.product.name}" এর পর্যাপ্ত স্টক নেই (মজুদ আছে: ${prod?.stock || 0}টি)।`);
+      if (!prod) {
+        alert('দুঃখিত, আইটেমটি পাওয়া যায়নি।');
+        return null;
+      }
+      const itemVariant = item.selectedVariant ? prod.variants?.find(v => v.id === item.selectedVariant?.id) : undefined;
+      const availableStock = itemVariant ? itemVariant.stock : prod.stock;
+      if (availableStock < item.quantity) {
+        alert(`দুঃখিত, "${item.product.nameBn || item.product.name}${itemVariant ? ` (${itemVariant.unit})` : ''}" এর পর্যাপ্ত স্টক নেই (মজুদ আছে: ${availableStock}টি)।`);
         return null;
       }
     }
 
     const orderNumber = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-    const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => {
+      const price = item.selectedVariant?.price ?? item.product.price;
+      return sum + (price * item.quantity);
+    }, 0);
     const tax = Math.round((subtotal * settings.taxRate) / 100);
     const deliveryFee = orderData.orderType === 'delivery' ? settings.deliveryFee : 0;
     const total = subtotal + tax + deliveryFee;
@@ -754,14 +862,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       orderType: orderData.orderType,
       tableNumber: orderData.orderType === 'dine_in' ? (orderData.tableNumber || tableNumber) : undefined,
       deliveryAddress: orderData.orderType === 'delivery' ? orderData.deliveryAddress : undefined,
-      items: cart.map(item => ({
-        productId: item.product.id,
-        name: item.product.nameBn ? `${item.product.nameBn} (${item.product.name})` : item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        unit: item.product.unit,
-      })),
+      items: cart.map(item => {
+        const itemPrice = item.selectedVariant?.price ?? item.product.price;
+        const itemUnit = item.selectedVariant?.unit || item.product.unit;
+        const displayName = item.product.nameBn 
+          ? (item.selectedVariant ? `${item.product.nameBn} - ${item.selectedVariant.unit}` : item.product.nameBn)
+          : (item.selectedVariant ? `${item.product.name} (${item.selectedVariant.unit})` : item.product.name);
+
+        return {
+          productId: item.product.id,
+          name: displayName,
+          price: itemPrice * item.quantity,
+          quantity: item.quantity,
+          unitPrice: itemPrice,
+          unit: itemUnit,
+          variantId: item.selectedVariant?.id,
+        };
+      }),
       subtotal,
       tax,
       discount: 0,
@@ -777,12 +894,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const newLogs: InventoryLog[] = [];
     setProducts(prevProducts =>
       prevProducts.map(p => {
-        const cartMatch = cart.find(item => item.product.id === p.id);
-        if (cartMatch) {
-          const deduction = cartMatch.quantity;
+        const matchingCartItems = cart.filter(item => item.product.id === p.id);
+        if (matchingCartItems.length > 0) {
+          let updatedVariants = p.variants ? [...p.variants] : undefined;
+          let totalDeduction = 0;
+
+          matchingCartItems.forEach(cartMatch => {
+            totalDeduction += cartMatch.quantity;
+            if (updatedVariants && cartMatch.selectedVariant) {
+              updatedVariants = updatedVariants.map(v => {
+                if (v.id === cartMatch.selectedVariant?.id) {
+                  return { ...v, stock: Math.max(0, (v.stock || 0) - cartMatch.quantity) };
+                }
+                return v;
+              });
+            }
+          });
+
           const prevStock = p.stock;
-          const newStock = Math.max(0, prevStock - deduction);
-          const newSales = (p.salesCount || 0) + deduction;
+          const newStock = updatedVariants 
+            ? updatedVariants.reduce((s, v) => s + (v.stock || 0), 0)
+            : Math.max(0, prevStock - totalDeduction);
+          const newSales = (p.salesCount || 0) + totalDeduction;
 
           const logItem: InventoryLog = {
             id: `log-${Date.now()}-${p.id}`,
@@ -790,7 +923,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             productId: p.id,
             productName: p.name,
             changeType: 'order_deduction',
-            quantityChange: -deduction,
+            quantityChange: -totalDeduction,
             previousStock: prevStock,
             newStock: newStock,
             referenceId: orderNumber,
@@ -801,6 +934,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           try {
             const prodRef = doc(db, 'products', p.id);
             updateDoc(prodRef, { 
+              ...(updatedVariants ? { variants: updatedVariants } : {}),
               stock: newStock,
               salesCount: newSales
             }).catch(err => console.warn(err));
@@ -813,6 +947,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
           return {
             ...p,
+            ...(updatedVariants ? { variants: updatedVariants } : {}),
             stock: newStock,
             salesCount: newSales,
           };
@@ -854,12 +989,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const refundLogs: InventoryLog[] = [];
         setProducts(prevProducts =>
           prevProducts.map(p => {
-            const itemMatch = order.items.find(item => item.productId === p.id);
-            if (itemMatch) {
-              const refundQty = itemMatch.quantity;
+            const orderItemsForProd = order.items.filter(item => item.productId === p.id);
+            if (orderItemsForProd.length > 0) {
+              let updatedVariants = p.variants ? [...p.variants] : undefined;
+              let totalRefundQty = 0;
+
+              orderItemsForProd.forEach(itemMatch => {
+                totalRefundQty += itemMatch.quantity;
+                if (updatedVariants && itemMatch.variantId) {
+                  updatedVariants = updatedVariants.map(v => {
+                    if (v.id === itemMatch.variantId) {
+                      return { ...v, stock: (v.stock || 0) + itemMatch.quantity };
+                    }
+                    return v;
+                  });
+                }
+              });
+
               const prevStock = p.stock;
-              const newStock = prevStock + refundQty;
-              const newSales = Math.max(0, (p.salesCount || 0) - refundQty);
+              const newStock = updatedVariants
+                ? updatedVariants.reduce((s, v) => s + (v.stock || 0), 0)
+                : prevStock + totalRefundQty;
+              const newSales = Math.max(0, (p.salesCount || 0) - totalRefundQty);
 
               const logItem: InventoryLog = {
                 id: `log-refund-${Date.now()}-${p.id}`,
@@ -867,7 +1018,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 productId: p.id,
                 productName: p.name,
                 changeType: 'order_cancellation_refund',
-                quantityChange: +refundQty,
+                quantityChange: +totalRefundQty,
                 previousStock: prevStock,
                 newStock: newStock,
                 referenceId: order.orderNumber,
@@ -878,6 +1029,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               try {
                 const prodRef = doc(db, 'products', p.id);
                 updateDoc(prodRef, { 
+                  ...(updatedVariants ? { variants: updatedVariants } : {}),
                   stock: newStock,
                   salesCount: newSales
                 }).catch(err => console.warn(err));
@@ -890,6 +1042,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
               return {
                 ...p,
+                ...(updatedVariants ? { variants: updatedVariants } : {}),
                 stock: newStock,
                 salesCount: newSales,
               };
@@ -908,7 +1061,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         console.warn(err);
       }
 
-      return prevOrders.map(o => (o.id === orderId ? { ...o, status: newStatus } : o));
+      return prevOrders.map(o => o.id === orderId ? { ...o, status: newStatus } : o);
     });
   }, []);
 
@@ -1015,6 +1168,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         addCategory,
 
         adjustStock,
+        adjustVariantStock,
         setExactStock,
         quickBatchRestock,
 
