@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Store products available for ordering",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "nameBn": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "stock": { "type": "number" },
+        "lowStockThreshold": { "type": "number" },
+        "sku": { "type": "string" },
+        "unit": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "isPopular": { "type": "boolean" },
+        "isSpecial": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "stock", "category"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "orderType": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "tax": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "customerName", "customerPhone", "items", "total", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "entity": "Product",
+      "rules": {
+        "read": "true",
+        "write": "true"
+      }
+    },
+    "/categories/{categoryId}": {
+      "rules": {
+        "read": "true",
+        "write": "true"
+      }
+    },
+    "/orders/{orderId}": {
+      "entity": "Order",
+      "rules": {
+        "read": "true",
+        "write": "true"
+      }
+    },
+    "/settings/{settingId}": {
+      "rules": {
+        "read": "true",
+        "write": "true"
+      }
+    },
+    "/stockLogs/{logId}": {
+      "rules": {
+        "read": "true",
+        "write": "true"
+      }
+    }
+  }
+}

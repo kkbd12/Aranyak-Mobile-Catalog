@@ -1,0 +1,6 @@
+{
+  "name": "Smart Mosla & Super Shop",
+  "description": "Interactive serial-ordered digital catalog for spices, grains, oils, and super shop groceries with real-time automated inventory tracking and seamless ordering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
