@@ -168,31 +168,31 @@ export const CartDrawer: React.FC = () => {
                       <div
                         key={product.id}
                         id={`cart-item-${product.id}`}
-                        className="pt-3 first:pt-0 flex items-center justify-between gap-3"
+                        className="pt-3.5 first:pt-0 flex items-center justify-between gap-3"
                       >
                         {/* Image & Title */}
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <img
                             src={product.image}
                             alt={product.name}
-                            className="w-12 h-12 rounded-xl object-cover bg-slate-100 shrink-0"
+                            className="w-14 h-14 rounded-2xl object-cover bg-slate-100 shrink-0 border border-slate-100"
                           />
                           <div className="min-w-0">
-                            <h4 className="text-xs font-bold text-slate-900 truncate">
-                              {product.name}
+                            <h4 className="text-sm font-bold text-slate-900 truncate">
+                              {product.nameBn || product.name}
                             </h4>
                             <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                               {product.unit && (
-                                <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-1 py-0.2 rounded">
+                                <span className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md">
                                   {product.unit}
                                 </span>
                               )}
-                              <p className="text-[11px] text-amber-700 font-bold">
+                              <p className="text-xs text-amber-800 font-extrabold">
                                 {settings.currencySymbol}{product.price} × {quantity} = {settings.currencySymbol}{itemTotal}
                               </p>
                             </div>
                             {isMaxStock && (
-                              <p className="text-[10px] text-amber-600 font-medium">
+                              <p className="text-[11px] text-amber-600 font-medium">
                                 Max available stock ({product.stock})
                               </p>
                             )}
@@ -200,28 +200,28 @@ export const CartDrawer: React.FC = () => {
                         </div>
 
                         {/* Stepper Controls */}
-                        <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 shrink-0">
+                        <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 shrink-0">
                           <button
                             id={`cart-decrease-${product.id}`}
                             onClick={() => updateCartQuantity(product.id, quantity - 1)}
-                            className="w-6 h-6 rounded-md bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center shadow-2xs active:scale-95 transition-all"
+                            className="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-800 flex items-center justify-center shadow-2xs active:scale-95 transition-all"
                           >
-                            <Minus className="w-3 h-3" />
+                            <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="text-xs font-bold w-6 text-center text-slate-800">
+                          <span className="text-sm font-black w-6 text-center text-slate-900">
                             {quantity}
                           </span>
                           <button
                             id={`cart-increase-${product.id}`}
                             onClick={() => updateCartQuantity(product.id, quantity + 1)}
                             disabled={isMaxStock}
-                            className={`w-6 h-6 rounded-md flex items-center justify-center shadow-2xs active:scale-95 transition-all ${
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-2xs active:scale-95 transition-all ${
                               isMaxStock 
                                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                                : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : 'bg-amber-600 hover:bg-amber-700 text-white'
                             }`}
                           >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-3.5 h-3.5 font-bold" />
                           </button>
                         </div>
                       </div>

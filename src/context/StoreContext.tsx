@@ -83,6 +83,7 @@ interface StoreContextType {
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'salesCount' | 'rating'>) => Product;
   updateProduct: (id: string, updates: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
+  deleteMultipleProducts: (ids: string[]) => void;
   addCategory: (category: { name: string; nameBn?: string; icon: string }) => Category;
   
   // Inventory Automated Actions
@@ -248,15 +249,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         // 1. Subscribe to Products
         unsubscribeProducts = onSnapshot(productsCol, (snapshot) => {
-          if (!snapshot.empty) {
-            const list: Product[] = [];
-            snapshot.forEach(docSnap => {
-              list.push(docSnap.data() as Product);
-            });
-            // Sort by order/createdAt
-            list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-            setProducts(list);
-          }
+          const list: Product[] = [];
+          snapshot.forEach(docSnap => {
+            list.push(docSnap.data() as Product);
+          });
+          // Sort by order/createdAt
+          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+          setProducts(list);
           setIsCloudConnected(true);
           setIsSyncing(false);
         }, (err) => {
@@ -540,7 +539,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const deleteProduct = useCallback((id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+    setProducts(prev => {
+      const next = prev.filter(p => p.id !== id);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.PRODUCTS, JSON.stringify(next));
+      } catch (e) {
+        console.warn(e);
+      }
+      return next;
+    });
     setCart(prev => prev.filter(item => item.product.id !== id));
 
     try {
@@ -548,6 +555,31 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       deleteDoc(prodRef).catch(err => console.warn('Firestore deleteDoc failed:', err));
     } catch (err) {
       console.warn('Firebase deleteDoc error:', err);
+    }
+  }, []);
+
+  const deleteMultipleProducts = useCallback((ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+    const idSet = new Set(ids);
+    setProducts(prev => {
+      const next = prev.filter(p => !idSet.has(p.id));
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.PRODUCTS, JSON.stringify(next));
+      } catch (e) {
+        console.warn(e);
+      }
+      return next;
+    });
+    setCart(prev => prev.filter(item => !idSet.has(item.product.id)));
+
+    try {
+      const batch = writeBatch(db);
+      ids.forEach(id => {
+        batch.delete(doc(db, 'products', id));
+      });
+      batch.commit().catch(err => console.warn('Firebase batch delete error:', err));
+    } catch (err) {
+      console.warn('Firebase batch delete error:', err);
     }
   }, []);
 
@@ -979,6 +1011,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         addProduct,
         updateProduct,
         deleteProduct,
+        deleteMultipleProducts,
         addCategory,
 
         adjustStock,

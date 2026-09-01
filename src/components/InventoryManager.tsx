@@ -2,21 +2,20 @@ import React, { useState } from 'react';
 import { 
   Boxes, 
   AlertTriangle, 
-  CheckCircle2, 
   TrendingUp, 
   RefreshCw, 
   Plus, 
-  Minus, 
   Search, 
-  Filter, 
   History, 
   ArrowUpRight, 
   ArrowDownRight,
-  Sparkles,
-  Package,
-  Layers,
-  Edit,
-  Trash2
+  Package, 
+  Edit, 
+  Trash2,
+  CheckSquare,
+  Square,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
@@ -32,6 +31,7 @@ export const InventoryManager: React.FC = () => {
     setExactStock, 
     quickBatchRestock,
     deleteProduct,
+    deleteMultipleProducts,
     setIsAddProductOpen,
     lowStockCount,
     outOfStockCount
@@ -45,6 +45,12 @@ export const InventoryManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'stock_list' | 'audit_log'>('stock_list');
   const [selectedProductToEdit, setSelectedProductToEdit] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Deletion States
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   // Inventory Totals
   const totalUnits = products.reduce((sum, p) => sum + p.stock, 0);
@@ -89,6 +95,53 @@ export const InventoryManager: React.FC = () => {
     setEditingStockId(null);
   };
 
+  // Selection helpers
+  const isAllSelected = filteredProducts.length > 0 && filteredProducts.every(p => selectedProductIds.includes(p.id));
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const currentFilteredIds = new Set(filteredProducts.map(p => p.id));
+      setSelectedProductIds(prev => prev.filter(id => !currentFilteredIds.has(id)));
+    } else {
+      const newIds = new Set([...selectedProductIds, ...filteredProducts.map(p => p.id)]);
+      setSelectedProductIds(Array.from(newIds));
+    }
+  };
+
+  const toggleSelectProduct = (productId: string) => {
+    setSelectedProductIds(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId) 
+        : [...prev, productId]
+    );
+  };
+
+  // Confirm Single Deletion
+  const handleConfirmSingleDelete = () => {
+    if (productToDelete) {
+      deleteProduct(productToDelete.id);
+      setSelectedProductIds(prev => prev.filter(id => id !== productToDelete.id));
+      setProductToDelete(null);
+    }
+  };
+
+  // Confirm Bulk Deletion
+  const handleConfirmBulkDelete = () => {
+    if (selectedProductIds.length > 0) {
+      deleteMultipleProducts(selectedProductIds);
+      setSelectedProductIds([]);
+      setIsBulkDeleteModalOpen(false);
+    }
+  };
+
+  // Confirm Delete All
+  const handleConfirmDeleteAll = () => {
+    const allIds = products.map(p => p.id);
+    deleteMultipleProducts(allIds);
+    setSelectedProductIds([]);
+    setIsDeleteAllModalOpen(false);
+  };
+
   return (
     <div id="inventory-manager-view" className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-24 animate-fade-in">
       {/* Top Banner & Header */}
@@ -102,13 +155,25 @@ export const InventoryManager: React.FC = () => {
               Automated Inventory Hub
             </h1>
             <p className="text-xs text-slate-500">
-              রিয়েল-টাইম অটোমেটেড স্টক ম্যানেজমেন্ট ও ট্র্যাকিং
+              রিয়েল-টাইম অটোমেটেড স্টক ম্যানেজমেন্ট ও ক্যাটালগ কন্ট্রোল
             </p>
           </div>
         </div>
 
         {/* Quick Batch Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {products.length > 0 && (
+            <button
+              id="clear-all-demo-btn"
+              onClick={() => setIsDeleteAllModalOpen(true)}
+              className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl border border-rose-200/80 shadow-xs flex items-center gap-1.5 active:scale-95 transition-all"
+              title="পূর্বের সকল ডেমো আইটেম মুছে ফেলুন"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>পূর্বের পণ্য মুছুন (Clear Products)</span>
+            </button>
+          )}
+
           {lowStockCount > 0 && (
             <button
               id="auto-batch-restock-btn"
@@ -117,7 +182,7 @@ export const InventoryManager: React.FC = () => {
               title="Automatically restock all items running low (+20 each)"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Auto Restock Low Items (+20)</span>
+              <span>Auto Restock (+20)</span>
             </button>
           )}
 
@@ -205,6 +270,34 @@ export const InventoryManager: React.FC = () => {
         </div>
       </div>
 
+      {/* Bulk Action Bar (When 1 or more items selected) */}
+      {selectedProductIds.length > 0 && (
+        <div className="p-3 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-lg animate-scale-in">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="bg-indigo-600 px-2 py-0.5 rounded-md font-bold">
+              {selectedProductIds.length}
+            </span>
+            <span>টি আইটেম সিলেক্ট করা হয়েছে</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedProductIds([])}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-300"
+            >
+              বাতিল (Clear Selection)
+            </button>
+            <button
+              onClick={() => setIsBulkDeleteModalOpen(true)}
+              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>নির্বাচিত পণ্য মুছে ফেলুন</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tabs: Stock Catalog Table vs. Real-time Audit Logs */}
       <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-xs">
         {/* Navigation Switch */}
@@ -219,7 +312,7 @@ export const InventoryManager: React.FC = () => {
               }`}
             >
               <Package className="w-3.5 h-3.5" />
-              <span>Stock Control & Quick Adjust ({products.length})</span>
+              <span>Stock Control &amp; Catalog ({products.length})</span>
             </button>
 
             <button
@@ -237,7 +330,7 @@ export const InventoryManager: React.FC = () => {
 
           {/* Search & Filter in Tab Header */}
           {activeTab === 'stock_list' && (
-            <div className="flex items-center gap-2 pb-2">
+            <div className="flex items-center gap-2 pb-2 flex-wrap">
               {/* Category dropdown */}
               <select
                 value={selectedCategory}
@@ -293,30 +386,63 @@ export const InventoryManager: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-4">Item & SKU</th>
+                  <th className="py-3 px-3 w-10 text-center">
+                    <button 
+                      onClick={toggleSelectAll}
+                      className="text-slate-500 hover:text-indigo-600 transition-colors p-1"
+                      title={isAllSelected ? "Deselect All" : "Select All"}
+                    >
+                      {isAllSelected ? (
+                        <CheckSquare className="w-4 h-4 text-indigo-600" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-400" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="py-3 px-3">Item &amp; SKU</th>
                   <th className="py-3 px-3">Category</th>
                   <th className="py-3 px-3">Price</th>
                   <th className="py-3 px-3">Current Stock</th>
                   <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-4 text-right">Quick Stock Actions</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-400">
-                      No products match your inventory filter.
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                      {products.length === 0 
+                        ? 'আপনার ক্যাটালগে বর্তমানে কোনো পণ্য নেই। উপরে "Add Product" বাটনে ক্লিক করে নতুন পণ্য যোগ করুন।'
+                        : 'No products match your inventory filter.'}
                     </td>
                   </tr>
                 ) : (
                   filteredProducts.map((product) => {
                     const isOut = product.stock <= 0;
                     const isLow = product.stock > 0 && product.stock <= product.lowStockThreshold;
+                    const isSelected = selectedProductIds.includes(product.id);
 
                     return (
-                      <tr key={product.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr 
+                        key={product.id} 
+                        className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-indigo-50/40' : ''}`}
+                      >
+                        {/* Checkbox */}
+                        <td className="py-3 px-3 text-center">
+                          <button 
+                            onClick={() => toggleSelectProduct(product.id)}
+                            className="text-slate-400 hover:text-indigo-600 p-1"
+                          >
+                            {isSelected ? (
+                              <CheckSquare className="w-4 h-4 text-indigo-600" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-300" />
+                            )}
+                          </button>
+                        </td>
+
                         {/* Product Info */}
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-3">
                           <div className="flex items-center gap-3">
                             <img
                               src={product.image}
@@ -410,7 +536,7 @@ export const InventoryManager: React.FC = () => {
                           )}
                         </td>
 
-                        {/* Quick Stock Controls */}
+                        {/* Quick Stock Controls & Actions */}
                         <td className="py-3 px-4 text-right">
                           <div className="inline-flex items-center gap-1">
                             <button
@@ -446,23 +572,15 @@ export const InventoryManager: React.FC = () => {
                             >
                               +10
                             </button>
+
+                            {/* Delete Button with Interactive Modal Trigger */}
                             <button
-                              onClick={() => adjustStock(product.id, 50, 'Quick batch restock +50')}
-                              className="px-2 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition-colors"
-                              title="Add 50"
+                              id={`delete-btn-${product.id}`}
+                              onClick={() => setProductToDelete(product)}
+                              className="p-1.5 text-rose-500 hover:text-rose-700 rounded-lg hover:bg-rose-100/70 transition-colors ml-1"
+                              title="পণ্যটি মুছে ফেলুন (Delete Product)"
                             >
-                              +50
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
-                                  deleteProduct(product.id);
-                                }
-                              }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors ml-1"
-                              title="Delete Product"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -537,6 +655,176 @@ export const InventoryManager: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* SINGLE PRODUCT DELETE CONFIRMATION MODAL */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div 
+            id="delete-single-product-modal"
+            className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <span>পণ্য মুছে ফেলুন (Delete Product)</span>
+              </div>
+              <button 
+                onClick={() => setProductToDelete(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+              <img 
+                src={productToDelete.image} 
+                alt={productToDelete.name} 
+                className="w-12 h-12 rounded-xl object-cover bg-white"
+              />
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">
+                  {productToDelete.nameBn || productToDelete.name}
+                </h3>
+                <p className="text-xs text-slate-500 font-mono">
+                  SKU: {productToDelete.sku} | বর্তমান মজুদ: {productToDelete.stock} {productToDelete.unit || ''}
+                </p>
+                <p className="text-xs font-bold text-amber-700">
+                  {settings.currencySymbol}{productToDelete.price}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              আপনি কি নিশ্চিত যে আপনি এই পণ্যটি তালিকা থেকে স্থায়ীভাবে মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা যাবে না।
+            </p>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
+              >
+                বাতিল (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSingleDelete}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>হ্যাঁ, ডিলিট করুন</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BULK DELETE CONFIRMATION MODAL */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div 
+            id="delete-bulk-modal"
+            className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <span>নির্বাচিত পণ্য মুছে ফেলুন</span>
+              </div>
+              <button 
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 space-y-1">
+              <p className="font-bold">
+                মোট {selectedProductIds.length}টি পণ্য ক্যাটালগ ও ক্লাউড ডেটাবেস থেকে ডিলিট করা হবে।
+              </p>
+              <p className="text-rose-600 text-[11px]">
+                এই অ্যাকশনটি সম্পন্ন হলে নির্বাচিত পণ্যগুলো স্থায়ীভাবে মুছে যাবে।
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
+              >
+                বাতিল (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBulkDelete}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>হ্যাঁ, সব {selectedProductIds.length}টি মুছুন</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE ALL / CLEAR PREVIOUS PRODUCTS MODAL */}
+      {isDeleteAllModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div 
+            id="delete-all-products-modal"
+            className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <span>সকল পণ্য মুছে ফেলুন</span>
+              </div>
+              <button 
+                onClick={() => setIsDeleteAllModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 space-y-2">
+              <p className="font-bold text-sm">
+                আপনি কি পূর্বের সকল {products.length}টি পণ্য মুছে ফেলতে চান?
+              </p>
+              <p className="text-rose-600 text-xs">
+                এটি করলে আপনার সম্পূর্ণ ক্যাটালগ পরিষ্কার হয়ে যাবে এবং আপনি আপনার পছন্দমতো নতুন পণ্য যোগ করতে পারবেন।
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsDeleteAllModalOpen(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
+              >
+                বাতিল
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteAll}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>হ্যাঁ, সম্পূর্ণ ক্যাটালগ মুছুন</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Product Edit Modal (Allows full customization of Unit, Price, Stock, etc.) */}
       <EditProductModal
