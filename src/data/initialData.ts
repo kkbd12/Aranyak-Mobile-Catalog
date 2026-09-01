@@ -11,6 +11,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   tableOrderingEnabled: false,
   soundEffects: true,
   phone: '+880 1711-889900',
+  whatsappNumber: '+880 1711-889900',
   address: 'দোকান নং ১২-১৫, চকবাজার ও কাওরান বাজার, ঢাকা',
 };
 

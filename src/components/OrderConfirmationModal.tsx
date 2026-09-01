@@ -8,9 +8,12 @@ import {
   ShoppingBag, 
   UtensilsCrossed, 
   QrCode,
-  ArrowRight
+  ArrowRight,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { generateWhatsAppOrderText, openWhatsAppChat } from '../utils/whatsapp';
 
 interface OrderConfirmationModalProps {
   orderNumber: string | null;
@@ -27,6 +30,32 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleShareWhatsApp = () => {
+    const message = generateWhatsAppOrderText({
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      orderType: order.orderType,
+      deliveryAddress: order.deliveryAddress,
+      paymentMethod: order.paymentMethod,
+      notes: order.notes,
+      items: order.items.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        unit: item.unit
+      })),
+      subtotal: order.subtotal,
+      deliveryFee: order.deliveryFee,
+      tax: order.tax,
+      total: order.total,
+      settings
+    });
+
+    const targetPhone = settings.whatsappNumber || settings.phone || '';
+    openWhatsAppChat({ phone: targetPhone, message });
   };
 
   const handleGoToOrdersPOS = () => {
@@ -140,34 +169,36 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
           {/* Automated Inventory Note */}
           <div className="p-2.5 bg-emerald-50 text-emerald-800 rounded-xl text-[11px] flex items-center gap-2 border border-emerald-200">
             <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Automated Inventory: Items stock was auto-decremented in real time.</span>
+            <span>অটোমেটিক ইনভেন্টরি: স্টক স্বয়ংক্রিয়ভাবে আপডেট করা হয়েছে।</span>
           </div>
+
+          {/* WhatsApp Direct Share Button */}
+          <button
+            id="order-confirm-share-whatsapp-btn"
+            onClick={handleShareWhatsApp}
+            className="w-full py-3 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs sm:text-sm font-black rounded-2xl shadow-md shadow-emerald-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <MessageCircle className="w-4 h-4 fill-white text-[#25D366]" />
+            <span>WhatsApp-এ দোকানদারকে স্লিপ পাঠান</span>
+          </button>
         </div>
 
-        {/* Action Buttons */}
+        {/* Footer Action Buttons */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2">
           <button
             onClick={handlePrint}
             className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 flex items-center gap-1.5 transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print Slip</span>
+            <span>প্রিন্ট স্লিপ</span>
           </button>
 
-          <div className="flex gap-2">
-            <button
-              onClick={handleGoToOrdersPOS}
-              className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition-colors"
-            >
-              Track in POS
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
-            >
-              Back to Menu
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+          >
+            মেন্যুতে ফিরে যান
+          </button>
         </div>
       </div>
     </div>

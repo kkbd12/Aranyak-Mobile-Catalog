@@ -8,11 +8,14 @@ import {
   CreditCard, 
   DollarSign, 
   ShoppingBag,
-  Truck
+  Truck,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useStore } from '../context/StoreContext';
 import { OrderType } from '../types';
+import { generateWhatsAppOrderText, openWhatsAppChat } from '../utils/whatsapp';
 
 export const CheckoutModal: React.FC = () => {
   const { 
@@ -40,9 +43,25 @@ export const CheckoutModal: React.FC = () => {
   const deliveryFee = orderType === 'delivery' ? settings.deliveryFee : 0;
   const totalAmount = cartTotalAmount + taxAmount + deliveryFee;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
+    if (!customerName.trim()) {
+      alert('অনুগ্রহ করে আপনার নাম প্রদান করুন');
+      return false;
+    }
+    if (!customerPhone.trim()) {
+      alert('অনুগ্রহ করে আপনার মোবাইল নম্বর প্রদান করুন');
+      return false;
+    }
+    if (orderType !== 'takeaway' && !deliveryAddress.trim()) {
+      alert('অনুগ্রহ করে ডেলিভারির ঠিকানা প্রদান করুন');
+      return false;
+    }
+    return true;
+  };
+
+  const handlePlaceOrder = (shareViaWhatsApp = false) => {
     if (cart.length === 0) return;
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
@@ -65,11 +84,37 @@ export const CheckoutModal: React.FC = () => {
           origin: { y: 0.6 }
         });
 
+        if (shareViaWhatsApp) {
+          const message = generateWhatsAppOrderText({
+            orderNumber: placedOrder.orderNumber,
+            customerName: placedOrder.customerName,
+            customerPhone: placedOrder.customerPhone,
+            orderType: placedOrder.orderType,
+            deliveryAddress: placedOrder.deliveryAddress,
+            paymentMethod: placedOrder.paymentMethod,
+            notes: placedOrder.notes,
+            items: placedOrder.items,
+            subtotal: placedOrder.subtotal,
+            deliveryFee: placedOrder.deliveryFee,
+            tax: placedOrder.tax,
+            total: placedOrder.total,
+            settings
+          });
+
+          const targetPhone = settings.whatsappNumber || settings.phone || '';
+          openWhatsAppChat({ phone: targetPhone, message });
+        }
+
         setIsCheckoutOpen(false);
       }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handlePlaceOrder(false);
   };
 
   return (
@@ -356,16 +401,36 @@ export const CheckoutModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Place Order Submit */}
-          <button
-            id="confirm-place-order-btn"
-            type="submit"
-            disabled={isSubmitting || cart.length === 0}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-amber-600/25 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span>অর্ডার চূড়ান্ত করুন ({settings.currencySymbol}{totalAmount})</span>
-          </button>
+          {/* Action Buttons: WhatsApp Share & Standard Place Order */}
+          <div className="space-y-2 pt-1">
+            {/* Primary: Share Order via WhatsApp */}
+            <button
+              id="share-order-whatsapp-btn"
+              type="button"
+              onClick={() => handlePlaceOrder(true)}
+              disabled={isSubmitting || cart.length === 0}
+              className="w-full py-3.5 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-black rounded-2xl shadow-lg shadow-emerald-600/25 active:scale-98 transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <MessageCircle className="w-4 h-4 fill-white text-[#25D366]" />
+              </div>
+              <span>WhatsApp-এ সরাসরি অর্ডার পাঠান</span>
+              <span className="bg-black/15 text-white text-xs px-2 py-0.5 rounded-lg font-mono">
+                {settings.currencySymbol}{totalAmount}
+              </span>
+            </button>
+
+            {/* Secondary: Place Order in App */}
+            <button
+              id="confirm-place-order-btn"
+              type="submit"
+              disabled={isSubmitting || cart.length === 0}
+              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>অ্যাপে অর্ডার সম্পন্ন করুন</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

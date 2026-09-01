@@ -91,6 +91,7 @@ export interface StoreSettings {
   tableOrderingEnabled: boolean;
   soundEffects: boolean;
   phone: string;
+  whatsappNumber?: string;
   address: string;
   bkashNumber?: string;
   nagadNumber?: string;
