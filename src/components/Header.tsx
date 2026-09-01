@@ -1,7 +1,5 @@
 import React from 'react';
 import { 
-  Search, 
-  X, 
   Plus, 
   Boxes, 
   ClipboardList, 
@@ -24,8 +22,6 @@ export const Header: React.FC = () => {
     settings, 
     activeView, 
     setActiveView, 
-    searchQuery, 
-    setSearchQuery, 
     setIsAddProductOpen,
     setIsSettingsOpen,
     orderType,
@@ -252,32 +248,6 @@ export const Header: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Instant Search Bar (Active in Menu View) - Clean for customers */}
-      {activeView === 'customer_menu' && (
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 pb-2.5 pt-0.5">
-          <div className="relative w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              id="search-products-input"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="মসলা, তেল, চাল, ডাল, ঘি বা মুদি পণ্য সার্চ করুন... (যেমন: হলুদ, এলাচ, সরিষার তেল)"
-              className="w-full pl-9.5 pr-8 py-2.5 bg-slate-100/90 focus:bg-white text-slate-900 text-xs sm:text-sm rounded-xl border border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-200 focus:outline-hidden transition-all placeholder:text-slate-400 font-medium"
-            />
-            {searchQuery && (
-              <button
-                id="clear-search-btn"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 };

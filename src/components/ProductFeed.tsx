@@ -12,7 +12,9 @@ import {
   Droplets, 
   Wheat, 
   ShoppingBag, 
-  Gift 
+  Gift,
+  Search,
+  X
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -26,6 +28,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Gift: <Gift className="w-3.5 h-3.5" />,
   Layers: <Layers className="w-3.5 h-3.5" />,
 };
+
+const POPULAR_SEARCH_TAGS = ['হলুদ', 'মরিচ গুঁড়া', 'ঘি', 'সরিষার তেল', 'জিরা', 'এলাচ', 'দারুচিনি', 'চিনি', 'চায়ের পাতা'];
 
 interface ProductFeedProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
@@ -77,12 +81,40 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
     <div
       ref={containerRef}
       id="product-feed-scroll-container"
-      className="flex-1 h-[calc(100vh-6.5rem)] overflow-y-auto px-3 sm:px-5 py-2.5 space-y-4 pb-32 scroll-smooth"
+      className="flex-1 h-[calc(100vh-4.5rem)] overflow-y-auto px-3 sm:px-5 py-2.5 space-y-3.5 pb-32 scroll-smooth"
     >
-      {/* Top Header Bar & View Switcher - Categories hidden on mobile */}
-      <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md pt-1 pb-2 border-b border-slate-200/80 -mx-3 px-3 sm:-mx-5 sm:px-5">
+      {/* Top Search Bar & Header Area */}
+      <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md pt-1 pb-2.5 border-b border-slate-200/80 -mx-3 px-3 sm:-mx-5 sm:px-5 space-y-2">
+        {/* Main Instant Search Input */}
+        <div className="relative w-full shadow-2xs rounded-2xl">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-600 shrink-0 pointer-events-none" />
+          <input
+            id="product-feed-search-input"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="পণ্য বা মসলার নাম লিখে খুঁজুন... (যেমন: হলুদ, এলাচ, সরিষার তেল, ঘি)"
+            className="w-full pl-10 pr-10 py-2.5 bg-white text-slate-900 text-xs sm:text-sm font-medium rounded-2xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 focus:outline-hidden transition-all placeholder:text-slate-400"
+          />
+          {searchQuery ? (
+            <button
+              id="clear-feed-search-btn"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              title="সার্চ মুছে ফেলুন"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md hidden sm:inline">
+              {products.length}টি পণ্য
+            </span>
+          )}
+        </div>
+
+        {/* Quick Tag Recommendations / Category Horizontal Bar */}
         <div className="flex items-center justify-between gap-2">
-          {/* Quick Category Horizontal Slider (Visible ONLY on Desktop/Tablet) */}
+          {/* Quick Category Horizontal Slider (Visible on Desktop/Tablet) */}
           <div className="hidden md:flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 select-none">
             {categories.map((cat) => {
               const isSelected = activeCategory === cat.id;
@@ -93,7 +125,10 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    if (searchQuery) setSearchQuery('');
+                  }}
                   className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-all ${
                     isSelected
                       ? 'bg-amber-600 text-white shadow-xs scale-102'
@@ -114,15 +149,22 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
             })}
           </div>
 
-          {/* Mobile Catalog Header Info */}
-          <div className="flex md:hidden items-center gap-2 flex-1">
-            <span className="w-2 h-4 bg-amber-500 rounded-full shrink-0" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-800">পণ্য তালিকা</span>
-              <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100/80 px-1.5 py-0.2 rounded-full border border-amber-200/60">
-                {products.length}টি আইটেম
-              </span>
-            </div>
+          {/* Quick Search Tag Chips on Mobile */}
+          <div className="flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 select-none">
+            <span className="text-[11px] font-bold text-slate-500 shrink-0">পপুলার:</span>
+            {POPULAR_SEARCH_TAGS.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSearchQuery(tag)}
+                className={`px-2 py-0.5 rounded-lg text-[11px] font-semibold whitespace-nowrap shrink-0 transition-colors border ${
+                  searchQuery === tag
+                    ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200/80'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ import { InventoryManager } from './components/InventoryManager';
 import { OrderManager } from './components/OrderManager';
 import { StoreSettingsModal } from './components/StoreSettingsModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
-import { Smartphone, Monitor, Lock, Phone, MapPin, Sparkles, ShieldCheck } from 'lucide-react';
+import { Lock, Phone, MapPin, Sparkles, ShieldCheck } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { 
@@ -24,7 +24,6 @@ const MainLayout: React.FC = () => {
     settings
   } = useStore();
 
-  const [isPhoneFrame, setIsPhoneFrame] = useState(false);
   const [confirmedOrderToView, setConfirmedOrderToView] = useState<string | null>(null);
 
   // Sync active order notification
@@ -35,44 +34,9 @@ const MainLayout: React.FC = () => {
   }, [activeOrderNumber]);
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
-      {/* Top Device Simulation Bar */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-semibold text-white">{settings.storeName}</span>
-          <span className="text-slate-400 hidden sm:inline">• ক্লাউড ক্যাটালগ ও রিয়েল-টাইম অর্ডার</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsPhoneFrame(!isPhoneFrame)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all ${
-              isPhoneFrame
-                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-            }`}
-            title="Toggle Phone Frame mode"
-          >
-            {isPhoneFrame ? <Monitor className="w-3 h-3" /> : <Smartphone className="w-3 h-3" />}
-            <span>{isPhoneFrame ? 'ফুলস্ক্রিন ভিউ' : 'মোবাইল ফ্রেম ভিউ'}</span>
-          </button>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-slate-50 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       {/* App Container */}
-      <div className={`flex-1 flex flex-col mx-auto w-full transition-all duration-300 ${
-        isPhoneFrame 
-          ? 'max-w-[430px] my-4 shadow-2xl rounded-[40px] border-8 border-slate-800 bg-white overflow-hidden ring-1 ring-slate-900/10' 
-          : 'bg-white shadow-xs'
-      }`}>
-        {/* Dynamic Island / Speaker cutout in Phone Frame mode */}
-        {isPhoneFrame && (
-          <div className="bg-slate-900 h-6 flex items-center justify-center relative select-none">
-            <div className="w-24 h-4 bg-black rounded-full" />
-          </div>
-        )}
-
+      <div className="flex-1 flex flex-col mx-auto w-full bg-white shadow-xs">
         {/* Global App Header (Shows pure catalog for customers, full control room for admin) */}
         <Header />
 
@@ -81,8 +45,8 @@ const MainLayout: React.FC = () => {
           {activeView === 'customer_menu' && (
             <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
               <div className="flex-1 flex min-h-0">
-                {/* Category Sidebar (Visible on desktop screens when not in phone frame) */}
-                {!isPhoneFrame && <CategorySidebar />}
+                {/* Category Sidebar */}
+                <CategorySidebar />
 
                 {/* Continuous Product List with Photos */}
                 <ProductFeed />
