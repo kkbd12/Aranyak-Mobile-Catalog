@@ -28,6 +28,7 @@ export function generateWhatsAppOrderText({
   orderType,
   deliveryAddress,
   paymentMethod,
+  transactionId,
   notes,
   items,
   subtotal,
@@ -42,6 +43,7 @@ export function generateWhatsAppOrderText({
   orderType: string;
   deliveryAddress?: string;
   paymentMethod: string;
+  transactionId?: string;
   notes?: string;
   items: Array<{ name: string; quantity: number; price: number; unit?: string }>;
   subtotal: number;
@@ -56,8 +58,9 @@ export function generateWhatsAppOrderText({
 
   const paymentMethodText = 
     paymentMethod === 'bkash' ? 'bKash (বিকাশ)' :
+    paymentMethod === 'bangla_qr' ? 'বাংলা কিউআর (Bangla QR)' :
     paymentMethod === 'nagad' ? 'Nagad (নগদ)' :
-    paymentMethod === 'cash' ? 'ক্যাশ অন ডেলিভারি' : 'কার্ড / ব্যাংক';
+    paymentMethod === 'cash' ? 'ক্যাশ অন ডেলিভারি (Cash on Delivery)' : 'কার্ড / ব্যাংক';
 
   let text = `🛒 *নতুন অর্ডার #${orderNumber}*\n`;
   text += `🏪 *দোকান:* ${settings.storeName}\n\n`;
@@ -69,7 +72,11 @@ export function generateWhatsAppOrderText({
   if (deliveryAddress && orderType !== 'takeaway') {
     text += `• ডেলিভারি ঠিকানা: ${deliveryAddress}\n`;
   }
-  text += `• পেমেন্ট মাধ্যম: ${paymentMethodText}\n\n`;
+  text += `• পেমেন্ট মাধ্যম: ${paymentMethodText}\n`;
+  if (transactionId && transactionId.trim()) {
+    text += `• ট্রানজেকশন আইডি (TrxID): ${transactionId.trim()}\n`;
+  }
+  text += `\n`;
 
   text += `📦 *অর্ডারকৃত পণ্যের তালিকা:*\n`;
   items.forEach((item, index) => {

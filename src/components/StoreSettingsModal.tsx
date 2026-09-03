@@ -38,7 +38,10 @@ export const StoreSettingsModal: React.FC = () => {
   const [phone, setPhone] = useState(settings.phone);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber || settings.phone || '+880 1711-889900');
   const [address, setAddress] = useState(settings.address);
-  const [bkashNumber, setBkashNumber] = useState(settings.bkashNumber || '01700-000000');
+  const [bkashNumber, setBkashNumber] = useState(settings.bkashNumber || '01711-889900');
+  const [banglaQrNumber, setBanglaQrNumber] = useState(settings.banglaQrNumber || '01711-889900');
+  const [banglaQrMerchantName, setBanglaQrMerchantName] = useState(settings.banglaQrMerchantName || settings.storeName || 'সরিষার তেল ও খাঁটি খাবার');
+  const [banglaQrImageUrl, setBanglaQrImageUrl] = useState(settings.banglaQrImageUrl || '');
   const [nagadNumber, setNagadNumber] = useState(settings.nagadNumber || '01800-000000');
   const [pin, setPin] = useState(adminPin || '1234');
   const [soundEffects, setSoundEffects] = useState(settings.soundEffects);
@@ -60,6 +63,9 @@ export const StoreSettingsModal: React.FC = () => {
       whatsappNumber,
       address,
       bkashNumber,
+      banglaQrNumber,
+      banglaQrMerchantName,
+      banglaQrImageUrl,
       nagadNumber,
       soundEffects,
       adminPin: pin,
@@ -198,31 +204,63 @@ export const StoreSettingsModal: React.FC = () => {
           </div>
 
           {/* Payment Account Numbers */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                বিকাশ মার্চেন্ট / পার্সোনাল নম্বর
-              </label>
-              <input
-                type="text"
-                value={bkashNumber}
-                onChange={(e) => setBkashNumber(e.target.value)}
-                placeholder="017xxxxxxxx"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:border-amber-500 font-mono"
-              />
-            </div>
+          <div className="p-3.5 bg-amber-50/50 rounded-2xl border border-amber-100 space-y-3">
+            <h4 className="text-xs font-bold text-amber-950 uppercase tracking-wider">
+              পেমেন্ট গেটওয়ে সেটিংস (Payment Settings)
+            </h4>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                নগদ নম্বর
-              </label>
-              <input
-                type="text"
-                value={nagadNumber}
-                onChange={(e) => setNagadNumber(e.target.value)}
-                placeholder="018xxxxxxxx"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:border-amber-500 font-mono"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  বিকাশ নম্বর (bKash Personal / Merchant)
+                </label>
+                <input
+                  type="text"
+                  value={bkashNumber}
+                  onChange={(e) => setBkashNumber(e.target.value)}
+                  placeholder="017xxxxxxxx"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:border-amber-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  বাংলা কিউআর নম্বর (Bangla QR Account / ID)
+                </label>
+                <input
+                  type="text"
+                  value={banglaQrNumber}
+                  onChange={(e) => setBanglaQrNumber(e.target.value)}
+                  placeholder="017xxxxxxxx"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:border-amber-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  বাংলা কিউআর মার্চেন্ট নাম (Merchant Name)
+                </label>
+                <input
+                  type="text"
+                  value={banglaQrMerchantName}
+                  onChange={(e) => setBanglaQrMerchantName(e.target.value)}
+                  placeholder="যেমন: Pure Mustard Oil Shop"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:border-amber-500 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  বাংলা কিউআর ইমেজ লিংক (QR Image URL - Optional)
+                </label>
+                <input
+                  type="url"
+                  value={banglaQrImageUrl}
+                  onChange={(e) => setBanglaQrImageUrl(e.target.value)}
+                  placeholder="https://... বা খালি রাখুন (অটো কিউআর দেখাবে)"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:border-amber-500 text-xs"
+                />
+              </div>
             </div>
           </div>
 

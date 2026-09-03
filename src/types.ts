@@ -74,8 +74,9 @@ export interface Order {
   deliveryFee: number;
   total: number;
   status: OrderStatus;
-  paymentMethod: 'cash' | 'bkash' | 'nagad' | 'card';
+  paymentMethod: 'cash' | 'bkash' | 'bangla_qr' | 'nagad' | 'card';
   paymentStatus: 'paid' | 'unpaid';
+  transactionId?: string;
   notes?: string;
 }
 
@@ -107,6 +108,9 @@ export interface StoreSettings {
   address: string;
   bkashNumber?: string;
   nagadNumber?: string;
+  banglaQrNumber?: string;
+  banglaQrMerchantName?: string;
+  banglaQrImageUrl?: string;
   adminPin?: string;
 }
 

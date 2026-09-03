@@ -13,6 +13,9 @@ export const INITIAL_SETTINGS: StoreSettings = {
   phone: '+880 1711-889900',
   whatsappNumber: '+880 1711-889900',
   address: 'দোকান নং ১২-১৫, চকবাজার ও কাওরান বাজার, ঢাকা',
+  bkashNumber: '01711889900',
+  banglaQrNumber: '01711889900',
+  banglaQrMerchantName: 'খাঁটি মসলা ও সুপার শপ',
 };
 
 export const INITIAL_CATEGORIES: Category[] = [

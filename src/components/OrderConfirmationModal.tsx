@@ -40,6 +40,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
       orderType: order.orderType,
       deliveryAddress: order.deliveryAddress,
       paymentMethod: order.paymentMethod,
+      transactionId: order.transactionId,
       notes: order.notes,
       items: order.items.map(item => ({
         name: item.name,
@@ -104,9 +105,16 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
             </div>
             <div>
               <span className="text-slate-400 block text-[10px]">Payment / মাধ্যম</span>
-              <span className="font-bold text-slate-800 uppercase">
-                {order.paymentMethod} • {order.paymentStatus}
+              <span className="font-bold text-slate-800">
+                {order.paymentMethod === 'bkash' ? 'bKash (বিকাশ)' :
+                 order.paymentMethod === 'bangla_qr' ? 'বাংলা QR (Bangla QR)' :
+                 order.paymentMethod === 'cash' ? 'Cash on Delivery' : order.paymentMethod}
               </span>
+              {order.transactionId && (
+                <span className="text-[10px] text-pink-700 block font-mono">
+                  TrxID: {order.transactionId}
+                </span>
+              )}
             </div>
             <div>
               <span className="text-slate-400 block text-[10px]">Status</span>

@@ -222,8 +222,18 @@ export const OrderManager: React.FC = () => {
 
                   {/* Total & Payment */}
                   <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
-                    <div className="text-slate-500">
-                      Payment: <span className="font-bold text-slate-800 uppercase">{order.paymentMethod}</span> ({order.paymentStatus})
+                    <div className="text-slate-600">
+                      <span>পেমেন্ট: </span>
+                      <span className="font-bold text-slate-900">
+                        {order.paymentMethod === 'bkash' ? 'bKash' : 
+                         order.paymentMethod === 'bangla_qr' ? 'Bangla QR' : 
+                         order.paymentMethod === 'cash' ? 'Cash on Delivery' : order.paymentMethod}
+                      </span>
+                      {order.transactionId && (
+                        <span className="ml-1.5 text-[10px] font-mono font-bold text-pink-700 bg-pink-50 border border-pink-200 px-1.5 py-0.2 rounded">
+                          TrxID: {order.transactionId}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm font-black text-amber-700">
                       Total: {settings.currencySymbol}{order.total}

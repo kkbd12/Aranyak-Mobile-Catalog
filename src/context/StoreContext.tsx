@@ -100,7 +100,8 @@ interface StoreContextType {
     orderType: OrderType;
     tableNumber?: string;
     deliveryAddress?: string;
-    paymentMethod: 'cash' | 'bkash' | 'nagad' | 'card';
+    paymentMethod: 'cash' | 'bkash' | 'bangla_qr' | 'nagad' | 'card';
+    transactionId?: string;
     notes?: string;
   }) => Order | null;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus) => void;
@@ -876,7 +877,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     orderType: OrderType;
     tableNumber?: string;
     deliveryAddress?: string;
-    paymentMethod: 'cash' | 'bkash' | 'nagad' | 'card';
+    paymentMethod: 'cash' | 'bkash' | 'bangla_qr' | 'nagad' | 'card';
+    transactionId?: string;
     notes?: string;
   }): Order | null => {
     if (cart.length === 0) return null;
@@ -939,6 +941,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       status: 'pending',
       paymentMethod: orderData.paymentMethod,
       paymentStatus: orderData.paymentMethod === 'cash' ? 'unpaid' : 'paid',
+      transactionId: orderData.transactionId,
       notes: orderData.notes,
     };
 

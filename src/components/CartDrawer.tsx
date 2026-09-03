@@ -96,198 +96,215 @@ export const CartDrawer: React.FC = () => {
 
       {/* Expandable Sliding Cart Drawer / Modal */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
           {/* Backdrop */}
           <div
             id="cart-backdrop"
             onClick={() => setIsCartOpen(false)}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-fade-in"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-fade-in"
           />
 
           {/* Drawer Container */}
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden animate-slide-left">
-              {/* Drawer Header */}
-              <div className="px-4 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0 pt-safe">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
-                    <ShoppingBag className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-slate-900">Your Cart (আপনার কার্ট)</h2>
-                    <p className="text-[11px] text-slate-500">{cartTotalCount} items selected</p>
-                  </div>
+          <div className="relative w-full sm:w-[440px] max-w-full bg-white shadow-2xl flex flex-col h-full max-h-full sm:max-h-[100dvh] overflow-hidden animate-slide-left z-10">
+            {/* Drawer Header */}
+            <div className="px-4 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0 pt-safe">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4" />
                 </div>
-
-                <div className="flex items-center gap-1">
-                  {cart.length > 0 && (
-                    <button
-                      id="clear-cart-btn"
-                      onClick={clearCart}
-                      className="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-1 hover:bg-rose-50 rounded-md transition-colors flex items-center gap-1"
-                      title="Clear Cart"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Clear</span>
-                    </button>
-                  )}
-                  <button
-                    id="close-cart-btn"
-                    onClick={() => setIsCartOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Your Cart (আপনার কার্ট)</h2>
+                  <p className="text-[11px] text-slate-500">{cartTotalCount} items selected</p>
                 </div>
               </div>
 
-              {/* Cart Items List */}
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 divide-y divide-slate-100">
-                {cart.length === 0 ? (
-                  <div className="py-20 text-center flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
-                      <ShoppingBag className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-800">Your cart is empty</h3>
-                    <p className="text-xs text-slate-500 max-w-xs mt-1">
-                      Browse our delicious menu and add some items to your order!
-                    </p>
-                    <button
-                      onClick={() => setIsCartOpen(false)}
-                      className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-colors"
-                    >
-                      Explore Menu
-                    </button>
-                  </div>
-                ) : (
-                  cart.map(({ product, quantity, selectedVariant }) => {
-                    const isRealVariant = selectedVariant && typeof selectedVariant === 'object' && typeof selectedVariant.price === 'number' && !isNaN(selectedVariant.price);
-                    const unitPrice = isRealVariant 
-                      ? selectedVariant.price 
-                      : (typeof product.price === 'number' && !isNaN(product.price) ? product.price : 0);
-                    const maxStock = isRealVariant 
-                      ? (selectedVariant.stock ?? product.stock) 
-                      : (product.stock ?? 99);
-                    const safeQuantity = typeof quantity === 'number' && !isNaN(quantity) && quantity > 0 ? quantity : 1;
-                    const isMaxStock = safeQuantity >= maxStock;
-                    const itemTotal = unitPrice * safeQuantity;
-                    const itemKey = isRealVariant ? `${product.id}-${selectedVariant.id}` : product.id;
-                    const displayUnit = isRealVariant 
-                      ? (selectedVariant.unit || selectedVariant.nameBn || selectedVariant.name) 
-                      : product.unit;
+              <div className="flex items-center gap-1">
+                {cart.length > 0 && (
+                  <button
+                    id="clear-cart-btn"
+                    onClick={clearCart}
+                    className="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-1 hover:bg-rose-50 rounded-md transition-colors flex items-center gap-1"
+                    title="Clear Cart"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear</span>
+                  </button>
+                )}
+                <button
+                  id="close-cart-btn"
+                  onClick={() => setIsCartOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
 
-                    return (
-                      <div
-                        key={itemKey}
-                        id={`cart-item-${itemKey}`}
-                        className="pt-3.5 first:pt-0 flex items-center justify-between gap-3"
-                      >
-                        {/* Image & Title */}
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-14 h-14 rounded-2xl object-cover bg-slate-100 shrink-0 border border-slate-100"
-                          />
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-bold text-slate-900 truncate">
-                              {product.nameBn || product.name}
-                            </h4>
-                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                              {displayUnit && (
-                                <span className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md">
-                                  {displayUnit}
-                                </span>
+            {/* Unified Scrollable Container: Cart Items + Bill Summary + Checkout Button */}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 pb-36 sm:pb-24">
+              {cart.length === 0 ? (
+                <div className="py-20 text-center flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                    <ShoppingBag className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800">Your cart is empty</h3>
+                  <p className="text-xs text-slate-500 max-w-xs mt-1">
+                    পণ্য নির্বাচন করে কার্টে যোগ করুন!
+                  </p>
+                  <button
+                    onClick={() => setIsCartOpen(false)}
+                    className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                  >
+                    Explore Menu
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Items List */}
+                  <div className="space-y-3 divide-y divide-slate-100">
+                    {cart.map(({ product, quantity, selectedVariant }) => {
+                      const isRealVariant = selectedVariant && typeof selectedVariant === 'object' && typeof selectedVariant.price === 'number' && !isNaN(selectedVariant.price);
+                      const unitPrice = isRealVariant 
+                        ? selectedVariant.price 
+                        : (typeof product.price === 'number' && !isNaN(product.price) ? product.price : 0);
+                      const maxStock = isRealVariant 
+                        ? (selectedVariant.stock ?? product.stock) 
+                        : (product.stock ?? 99);
+                      const safeQuantity = typeof quantity === 'number' && !isNaN(quantity) && quantity > 0 ? quantity : 1;
+                      const isMaxStock = safeQuantity >= maxStock;
+                      const itemTotal = unitPrice * safeQuantity;
+                      const itemKey = isRealVariant ? `${product.id}-${selectedVariant.id}` : product.id;
+                      const displayUnit = isRealVariant 
+                        ? (selectedVariant.unit || selectedVariant.nameBn || selectedVariant.name) 
+                        : product.unit;
+
+                      return (
+                        <div
+                          key={itemKey}
+                          id={`cart-item-${itemKey}`}
+                          className="pt-3.5 first:pt-0 flex items-center justify-between gap-3"
+                        >
+                          {/* Image & Title */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-14 h-14 rounded-2xl object-cover bg-slate-100 shrink-0 border border-slate-100"
+                            />
+                            <div className="min-w-0">
+                              <h4 className="text-sm font-bold text-slate-900 truncate">
+                                {product.nameBn || product.name}
+                              </h4>
+                              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                {displayUnit && (
+                                  <span className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md">
+                                    {displayUnit}
+                                  </span>
+                                )}
+                                <p className="text-xs text-amber-800 font-extrabold">
+                                  {settings.currencySymbol}{unitPrice} × {safeQuantity} = {settings.currencySymbol}{itemTotal}
+                                </p>
+                              </div>
+                              {isMaxStock && (
+                                <p className="text-[11px] text-amber-600 font-medium">
+                                  সর্বোচ্চ স্টক ({maxStock})
+                                </p>
                               )}
-                              <p className="text-xs text-amber-800 font-extrabold">
-                                {settings.currencySymbol}{unitPrice} × {safeQuantity} = {settings.currencySymbol}{itemTotal}
-                              </p>
                             </div>
-                            {isMaxStock && (
-                              <p className="text-[11px] text-amber-600 font-medium">
-                                Max available stock ({maxStock})
-                              </p>
-                            )}
+                          </div>
+
+                          {/* Stepper Controls */}
+                          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 shrink-0">
+                            <button
+                              id={`cart-decrease-${itemKey}`}
+                              onClick={() => updateCartQuantity(product.id, safeQuantity - 1, isRealVariant ? selectedVariant?.id : undefined)}
+                              className="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-800 flex items-center justify-center shadow-2xs active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-sm font-black w-6 text-center text-slate-900">
+                              {safeQuantity}
+                            </span>
+                            <button
+                              id={`cart-increase-${itemKey}`}
+                              onClick={() => updateCartQuantity(product.id, safeQuantity + 1, isRealVariant ? selectedVariant?.id : undefined)}
+                              disabled={isMaxStock}
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-2xs active:scale-95 transition-all ${
+                                isMaxStock 
+                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                                  : 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
+                              }`}
+                            >
+                              <Plus className="w-3.5 h-3.5 font-bold" />
+                            </button>
                           </div>
                         </div>
-
-                        {/* Stepper Controls */}
-                        <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 shrink-0">
-                          <button
-                            id={`cart-decrease-${itemKey}`}
-                            onClick={() => updateCartQuantity(product.id, safeQuantity - 1, isRealVariant ? selectedVariant?.id : undefined)}
-                            className="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-800 flex items-center justify-center shadow-2xs active:scale-95 transition-all"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="text-sm font-black w-6 text-center text-slate-900">
-                            {safeQuantity}
-                          </span>
-                          <button
-                            id={`cart-increase-${itemKey}`}
-                            onClick={() => updateCartQuantity(product.id, safeQuantity + 1, isRealVariant ? selectedVariant?.id : undefined)}
-                            disabled={isMaxStock}
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-2xs active:scale-95 transition-all ${
-                              isMaxStock 
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                                : 'bg-amber-600 hover:bg-amber-700 text-white'
-                            }`}
-                          >
-                            <Plus className="w-3.5 h-3.5 font-bold" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Order Bill Summary & Checkout Button */}
-              {cart.length > 0 && (
-                <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-3 shrink-0 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] sm:pb-4">
-                  {/* Cost breakdown */}
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Subtotal</span>
-                      <span className="font-semibold text-slate-900">
-                        {settings.currencySymbol}{cartTotalAmount}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-slate-600">
-                      <span>VAT / Tax ({settings.taxRate}%)</span>
-                      <span className="font-semibold text-slate-900">
-                        {settings.currencySymbol}{taxAmount}
-                      </span>
-                    </div>
-
-                    {orderType === 'delivery' && (
-                      <div className="flex justify-between text-slate-600">
-                        <span>Delivery Fee</span>
-                        <span className="font-semibold text-slate-900">
-                          {settings.currencySymbol}{deliveryFee}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-200">
-                      <span>Total Amount</span>
-                      <span className="text-amber-700 text-base">
-                        {settings.currencySymbol}{estimatedTotal}
-                      </span>
-                    </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Checkout Button */}
-                  <button
-                    id="proceed-checkout-btn"
-                    onClick={handleProceedToCheckout}
-                    className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-98 transition-all"
-                  >
-                    <span>Proceed to Checkout</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+                  {/* Order Bill Summary & Checkout Button Card */}
+                  <div className="pt-2">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          বিল বিবরণী (Order Summary)
+                        </span>
+                        <span className="text-[11px] font-semibold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded-md">
+                          {cartTotalCount} টি পণ্য
+                        </span>
+                      </div>
+
+                      {/* Cost breakdown */}
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between text-slate-600">
+                          <span>Subtotal (সাবটোটাল)</span>
+                          <span className="font-semibold text-slate-900">
+                            {settings.currencySymbol}{cartTotalAmount}
+                          </span>
+                        </div>
+
+                        {settings.taxRate > 0 && (
+                          <div className="flex justify-between text-slate-600">
+                            <span>VAT / Tax ({settings.taxRate}%)</span>
+                            <span className="font-semibold text-slate-900">
+                              {settings.currencySymbol}{taxAmount}
+                            </span>
+                          </div>
+                        )}
+
+                        {orderType === 'delivery' && (
+                          <div className="flex justify-between text-slate-600">
+                            <span>Delivery Fee (ডেলিভারি ফি)</span>
+                            <span className="font-semibold text-slate-900">
+                              {settings.currencySymbol}{deliveryFee}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-200">
+                          <span>Total Amount (সর্বমোট প্রদেয়)</span>
+                          <span className="text-amber-800 text-base font-black">
+                            {settings.currencySymbol}{estimatedTotal}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Checkout Button */}
+                      <button
+                        id="proceed-checkout-btn"
+                        onClick={handleProceedToCheckout}
+                        className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm sm:text-base font-bold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-98 transition-all cursor-pointer"
+                      >
+                        <span>Proceed to Checkout</span>
+                        <span className="bg-amber-700/60 px-2 py-0.5 rounded-lg text-xs font-black">
+                          {settings.currencySymbol}{estimatedTotal}
+                        </span>
+                        <ArrowRight className="w-4 h-4 ml-0.5" />
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
