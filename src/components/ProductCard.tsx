@@ -31,7 +31,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isOutOfStock || isMaxStockReached) return;
-    addToCart(product, 1);
+    addToCart(product, undefined, 1);
   };
 
   const handleIncrement = (e: React.MouseEvent) => {

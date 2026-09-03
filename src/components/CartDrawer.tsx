@@ -105,10 +105,10 @@ export const CartDrawer: React.FC = () => {
           />
 
           {/* Drawer Container */}
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full max-h-[100dvh] animate-slide-left">
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden animate-slide-left">
               {/* Drawer Header */}
-              <div className="px-4 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 pt-safe">
+              <div className="px-4 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0 pt-safe">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
                     <ShoppingBag className="w-4 h-4" />
@@ -142,7 +142,7 @@ export const CartDrawer: React.FC = () => {
               </div>
 
               {/* Cart Items List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-slate-100">
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 divide-y divide-slate-100">
                 {cart.length === 0 ? (
                   <div className="py-20 text-center flex flex-col items-center justify-center">
                     <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
@@ -161,13 +161,19 @@ export const CartDrawer: React.FC = () => {
                   </div>
                 ) : (
                   cart.map(({ product, quantity, selectedVariant }) => {
-                    const unitPrice = selectedVariant ? selectedVariant.price : product.price;
-                    const maxStock = selectedVariant ? selectedVariant.stock : product.stock;
-                    const isMaxStock = quantity >= maxStock;
-                    const itemTotal = unitPrice * quantity;
-                    const itemKey = selectedVariant ? `${product.id}-${selectedVariant.id}` : product.id;
-                    const displayUnit = selectedVariant 
-                      ? (selectedVariant.nameBn || selectedVariant.weight) 
+                    const isRealVariant = selectedVariant && typeof selectedVariant === 'object' && typeof selectedVariant.price === 'number' && !isNaN(selectedVariant.price);
+                    const unitPrice = isRealVariant 
+                      ? selectedVariant.price 
+                      : (typeof product.price === 'number' && !isNaN(product.price) ? product.price : 0);
+                    const maxStock = isRealVariant 
+                      ? (selectedVariant.stock ?? product.stock) 
+                      : (product.stock ?? 99);
+                    const safeQuantity = typeof quantity === 'number' && !isNaN(quantity) && quantity > 0 ? quantity : 1;
+                    const isMaxStock = safeQuantity >= maxStock;
+                    const itemTotal = unitPrice * safeQuantity;
+                    const itemKey = isRealVariant ? `${product.id}-${selectedVariant.id}` : product.id;
+                    const displayUnit = isRealVariant 
+                      ? (selectedVariant.unit || selectedVariant.nameBn || selectedVariant.name) 
                       : product.unit;
 
                     return (
@@ -194,7 +200,7 @@ export const CartDrawer: React.FC = () => {
                                 </span>
                               )}
                               <p className="text-xs text-amber-800 font-extrabold">
-                                {settings.currencySymbol}{unitPrice} × {quantity} = {settings.currencySymbol}{itemTotal}
+                                {settings.currencySymbol}{unitPrice} × {safeQuantity} = {settings.currencySymbol}{itemTotal}
                               </p>
                             </div>
                             {isMaxStock && (
@@ -209,17 +215,17 @@ export const CartDrawer: React.FC = () => {
                         <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 shrink-0">
                           <button
                             id={`cart-decrease-${itemKey}`}
-                            onClick={() => updateCartQuantity(product.id, quantity - 1, selectedVariant?.id)}
+                            onClick={() => updateCartQuantity(product.id, safeQuantity - 1, isRealVariant ? selectedVariant?.id : undefined)}
                             className="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-800 flex items-center justify-center shadow-2xs active:scale-95 transition-all"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
                           <span className="text-sm font-black w-6 text-center text-slate-900">
-                            {quantity}
+                            {safeQuantity}
                           </span>
                           <button
                             id={`cart-increase-${itemKey}`}
-                            onClick={() => updateCartQuantity(product.id, quantity + 1, selectedVariant?.id)}
+                            onClick={() => updateCartQuantity(product.id, safeQuantity + 1, isRealVariant ? selectedVariant?.id : undefined)}
                             disabled={isMaxStock}
                             className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-2xs active:scale-95 transition-all ${
                               isMaxStock 
@@ -238,7 +244,7 @@ export const CartDrawer: React.FC = () => {
 
               {/* Order Bill Summary & Checkout Button */}
               {cart.length > 0 && (
-                <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-3 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+                <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-3 shrink-0 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] sm:pb-4">
                   {/* Cost breakdown */}
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between text-slate-600">

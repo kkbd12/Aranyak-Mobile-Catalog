@@ -152,16 +152,20 @@ export const CheckoutModal: React.FC = () => {
             </span>
             <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
               {cart.map(({ product, quantity, selectedVariant }) => {
-                const unitPrice = selectedVariant ? selectedVariant.price : product.price;
-                const displayUnit = selectedVariant 
-                  ? (selectedVariant.nameBn || selectedVariant.weight) 
+                const isRealVariant = selectedVariant && typeof selectedVariant === 'object' && typeof selectedVariant.price === 'number' && !isNaN(selectedVariant.price);
+                const unitPrice = isRealVariant 
+                  ? selectedVariant.price 
+                  : (typeof product.price === 'number' && !isNaN(product.price) ? product.price : 0);
+                const safeQuantity = typeof quantity === 'number' && !isNaN(quantity) && quantity > 0 ? quantity : 1;
+                const displayUnit = isRealVariant 
+                  ? (selectedVariant.unit || selectedVariant.nameBn || selectedVariant.name) 
                   : product.unit;
-                const itemKey = selectedVariant ? `${product.id}-${selectedVariant.id}` : product.id;
+                const itemKey = isRealVariant ? `${product.id}-${selectedVariant.id}` : product.id;
 
                 return (
                   <div key={itemKey} className="flex items-center justify-between text-xs bg-white p-2 rounded-xl border border-slate-100">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-black text-amber-700">{quantity}×</span>
+                      <span className="font-black text-amber-700">{safeQuantity}×</span>
                       <div className="min-w-0">
                         <span className="font-semibold text-slate-900 truncate block">
                           {product.nameBn || product.name}
@@ -174,7 +178,7 @@ export const CheckoutModal: React.FC = () => {
                       </div>
                     </div>
                     <span className="font-bold text-slate-800 shrink-0 ml-2">
-                      {settings.currencySymbol}{unitPrice * quantity}
+                      {settings.currencySymbol}{unitPrice * safeQuantity}
                     </span>
                   </div>
                 );

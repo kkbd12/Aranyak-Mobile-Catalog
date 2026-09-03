@@ -35,7 +35,7 @@ export const ProductDetailModal: React.FC = () => {
 
   const handleAdd = () => {
     if (isOutOfStock || isMaxStockReached) return;
-    addToCart(product, 1);
+    addToCart(product, undefined, 1);
   };
 
   return (

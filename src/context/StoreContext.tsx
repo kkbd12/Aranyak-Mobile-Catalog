@@ -75,7 +75,7 @@ interface StoreContextType {
   setOrderType: (type: OrderType) => void;
   
   // Cart Actions
-  addToCart: (product: Product, variant?: ProductVariant, quantity?: number) => boolean;
+  addToCart: (product: Product, variant?: ProductVariant | number, quantity?: number) => boolean;
   removeFromCart: (productId: string, variantId?: string) => void;
   updateCartQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
@@ -169,7 +169,26 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEYS.CART);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return [];
+      // Sanitize any corrupted items where selectedVariant might be a number or invalid
+      return parsed.map((item: any) => {
+        let validVariant: ProductVariant | undefined = undefined;
+        if (
+          item.selectedVariant && 
+          typeof item.selectedVariant === 'object' && 
+          typeof item.selectedVariant.price === 'number' && 
+          !isNaN(item.selectedVariant.price)
+        ) {
+          validVariant = item.selectedVariant;
+        }
+        return {
+          ...item,
+          quantity: typeof item.quantity === 'number' && !isNaN(item.quantity) && item.quantity > 0 ? item.quantity : 1,
+          selectedVariant: validVariant,
+        };
+      });
     } catch {
       return [];
     }
@@ -413,16 +432,49 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const totalProductsCount = products.length;
 
-  const cartTotalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotalCount = cart.reduce((sum, item) => sum + (typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 1), 0);
   const cartTotalAmount = cart.reduce((sum, item) => {
-    const itemPrice = item.selectedVariant?.price ?? item.product.price;
-    return sum + (itemPrice * item.quantity);
+    const isRealVariant = item.selectedVariant && typeof item.selectedVariant === 'object' && typeof item.selectedVariant.price === 'number' && !isNaN(item.selectedVariant.price);
+    const itemPrice = isRealVariant 
+      ? item.selectedVariant!.price 
+      : (typeof item.product?.price === 'number' && !isNaN(item.product.price) ? item.product.price : 0);
+    const qty = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 1;
+    return sum + (itemPrice * qty);
   }, 0);
 
   // Cart Actions
-  const addToCart = useCallback((product: Product, variant?: ProductVariant, quantity = 1): boolean => {
+  const addToCart = useCallback((
+    product: Product, 
+    variantOrQuantity?: ProductVariant | number, 
+    quantityParam = 1
+  ): boolean => {
     const currentProduct = products.find(p => p.id === product.id) || product;
-    const selectedVariant = variant || (currentProduct.variants && currentProduct.variants.length > 0 ? currentProduct.variants[0] : undefined);
+    
+    let selectedVariant: ProductVariant | undefined = undefined;
+    let quantity = 1;
+
+    if (typeof variantOrQuantity === 'number') {
+      quantity = variantOrQuantity > 0 ? variantOrQuantity : 1;
+    } else if (variantOrQuantity && typeof variantOrQuantity === 'object') {
+      selectedVariant = variantOrQuantity;
+      quantity = typeof quantityParam === 'number' && quantityParam > 0 ? quantityParam : 1;
+    } else {
+      quantity = typeof quantityParam === 'number' && quantityParam > 0 ? quantityParam : 1;
+    }
+
+    // If no variant was passed, but product has variants, pick first valid variant
+    if (!selectedVariant && currentProduct.variants && currentProduct.variants.length > 0) {
+      const first = currentProduct.variants[0];
+      if (first && typeof first === 'object' && typeof first.price === 'number') {
+        selectedVariant = first;
+      }
+    }
+
+    // Ensure selectedVariant is only kept if valid object with numeric price
+    if (selectedVariant && (typeof selectedVariant !== 'object' || typeof selectedVariant.price !== 'number' || isNaN(selectedVariant.price))) {
+      selectedVariant = undefined;
+    }
+
     const availableStock = selectedVariant ? selectedVariant.stock : currentProduct.stock;
 
     if (availableStock <= 0) {
