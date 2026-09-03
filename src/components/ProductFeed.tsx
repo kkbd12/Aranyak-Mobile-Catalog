@@ -5,31 +5,9 @@ import {
   Sparkles, 
   SearchX, 
   Plus, 
-  Layers, 
-  Package, 
-  Flame, 
-  Crown, 
-  Droplets, 
-  Wheat, 
-  ShoppingBag, 
-  Gift,
   Search,
   X
 } from 'lucide-react';
-
-const ICON_MAP: Record<string, React.ReactNode> = {
-  Sparkles: <Sparkles className="w-3.5 h-3.5" />,
-  Flame: <Flame className="w-3.5 h-3.5" />,
-  Crown: <Crown className="w-3.5 h-3.5" />,
-  Droplets: <Droplets className="w-3.5 h-3.5" />,
-  Wheat: <Wheat className="w-3.5 h-3.5" />,
-  ShoppingBag: <ShoppingBag className="w-3.5 h-3.5" />,
-  Package: <Package className="w-3.5 h-3.5" />,
-  Gift: <Gift className="w-3.5 h-3.5" />,
-  Layers: <Layers className="w-3.5 h-3.5" />,
-};
-
-const POPULAR_SEARCH_TAGS = ['হলুদ', 'মরিচ গুঁড়া', 'ঘি', 'সরিষার তেল', 'জিরা', 'এলাচ', 'দারুচিনি', 'চিনি', 'চায়ের পাতা'];
 
 interface ProductFeedProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
@@ -40,7 +18,6 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
     products, 
     categories, 
     activeCategory, 
-    setActiveCategory, 
     searchQuery, 
     setSearchQuery,
     setIsAddProductOpen
@@ -117,59 +94,6 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
               {products.length}টি পণ্য
             </span>
           )}
-        </div>
-
-        {/* Quick Category Horizontal Slider (Visible on All Screen Sizes including Mobile) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none w-full">
-          {categories.map((cat) => {
-            const isSelected = activeCategory === cat.id;
-            const count = cat.id === 'all' 
-              ? products.length 
-              : products.filter(p => p.category === cat.id).length;
-
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  if (searchQuery) setSearchQuery('');
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-all ${
-                  isSelected
-                    ? 'bg-amber-600 text-white shadow-xs scale-102 ring-1 ring-amber-500'
-                    : 'bg-white text-slate-700 hover:bg-slate-200/80 border border-slate-200/70'
-                }`}
-              >
-                <span className={isSelected ? 'text-amber-200' : 'text-amber-600'}>
-                  {ICON_MAP[cat.icon] || <Layers className="w-4 h-4" />}
-                </span>
-                <span>{cat.nameBn || cat.name}</span>
-                <span className={`text-[11px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold ${
-                  isSelected ? 'bg-amber-700/60 text-white' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Quick Search Tag Chips on Mobile & Tablet */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none text-xs">
-          <span className="text-[11px] font-black text-slate-500 shrink-0">পপুলার:</span>
-          {POPULAR_SEARCH_TAGS.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setSearchQuery(tag)}
-              className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-colors border ${
-                searchQuery === tag
-                  ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200/80'
-              }`}
-            >
-              {tag}
-            </button>
-          ))}
         </div>
       </div>
 
