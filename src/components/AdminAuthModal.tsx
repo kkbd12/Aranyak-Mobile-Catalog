@@ -33,13 +33,13 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({ isOpen, onClose 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/70 backdrop-blur-xs">
       <div 
         id="admin-auth-modal-container"
-        className="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200 animate-scale-in"
+        className="bg-white rounded-t-3xl sm:rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200 animate-scale-in"
       >
         {/* Modal Header */}
-        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white pt-safe sm:pt-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
               <Lock className="w-4 h-4" />
@@ -62,7 +62,7 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Content */}
-        <form onSubmit={handleLogin} className="p-5 space-y-4">
+        <form onSubmit={handleLogin} className="p-5 space-y-4 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]">
           <div className="text-center py-1">
             <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-xs">
               <KeyRound className="w-6 h-6" />

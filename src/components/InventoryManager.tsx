@@ -143,7 +143,7 @@ export const InventoryManager: React.FC = () => {
   };
 
   return (
-    <div id="inventory-manager-view" className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-24 animate-fade-in">
+    <div id="inventory-manager-view" className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] animate-fade-in">
       {/* Top Banner & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-xs">
         <div className="flex items-center gap-3">
@@ -658,10 +658,10 @@ export const InventoryManager: React.FC = () => {
 
       {/* SINGLE PRODUCT DELETE CONFIRMATION MODAL */}
       {productToDelete && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
           <div 
             id="delete-single-product-modal"
-            className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in"
+            className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] sm:pb-5"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
@@ -724,10 +724,10 @@ export const InventoryManager: React.FC = () => {
 
       {/* BULK DELETE CONFIRMATION MODAL */}
       {isBulkDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
           <div 
             id="delete-bulk-modal"
-            className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in"
+            className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] sm:pb-5"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
@@ -776,10 +776,10 @@ export const InventoryManager: React.FC = () => {
 
       {/* DELETE ALL / CLEAR PREVIOUS PRODUCTS MODAL */}
       {isDeleteAllModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
           <div 
             id="delete-all-products-modal"
-            className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in"
+            className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-scale-in pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] sm:pb-5"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2 text-rose-700 font-bold text-base">

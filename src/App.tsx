@@ -34,9 +34,9 @@ const MainLayout: React.FC = () => {
   }, [activeOrderNumber]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-50 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       {/* App Container */}
-      <div className="flex-1 flex flex-col mx-auto w-full bg-white shadow-xs">
+      <div className="flex-1 flex flex-col mx-auto w-full bg-white shadow-xs min-h-[100dvh]">
         {/* Global App Header (Shows pure catalog for customers, full control room for admin) */}
         <Header />
 
@@ -52,8 +52,8 @@ const MainLayout: React.FC = () => {
                 <ProductFeed />
               </div>
 
-              {/* Discreet Customer Footer */}
-              <footer className="bg-slate-900 text-slate-400 py-6 px-4 border-t border-slate-800 mt-auto">
+              {/* Discreet Customer Footer with Safe-Area clearance for floating cart & mobile navigation bar */}
+              <footer className="bg-slate-900 text-slate-400 py-6 px-4 border-t border-slate-800 mt-auto pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] sm:pb-8">
                 <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold">

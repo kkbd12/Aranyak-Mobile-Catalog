@@ -75,7 +75,7 @@ export const OrderManager: React.FC = () => {
   };
 
   return (
-    <div id="order-manager-view" className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-24 animate-fade-in">
+    <div id="order-manager-view" className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] animate-fade-in">
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-xs">
         <div className="flex items-center gap-3">

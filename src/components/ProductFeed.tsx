@@ -88,10 +88,10 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
     <div
       ref={containerRef}
       id="product-feed-scroll-container"
-      className="flex-1 h-[calc(100vh-4.5rem)] overflow-y-auto px-3 sm:px-5 py-2.5 space-y-3.5 pb-32 scroll-smooth"
+      className="flex-1 h-[calc(100dvh-4rem)] sm:h-[calc(100dvh-4.5rem)] overflow-y-auto px-3 sm:px-5 py-2.5 space-y-3.5 pb-[calc(10rem+env(safe-area-inset-bottom,0px))] scroll-smooth"
     >
       {/* Top Search Bar & Header Area */}
-      <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md pt-1.5 pb-3 border-b border-slate-200/80 -mx-3 px-3 sm:-mx-5 sm:px-5 space-y-2.5">
+      <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md pt-1 pb-2.5 border-b border-slate-200/80 -mx-3 px-3 sm:-mx-5 sm:px-5 space-y-2">
         {/* Main Instant Search Input */}
         <div className="relative w-full shadow-2xs rounded-2xl">
           <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-600 shrink-0 pointer-events-none" />
@@ -101,7 +101,7 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="পণ্য বা মসলার নাম লিখে খুঁজুন... (যেমন: হলুদ, এলাচ, সরিষার তেল, ঘি)"
-            className="w-full pl-11 pr-11 py-3 bg-white text-slate-900 text-sm sm:text-base font-medium rounded-2xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 focus:outline-hidden transition-all placeholder:text-slate-400"
+            className="w-full pl-11 pr-11 py-2.5 sm:py-3 bg-white text-slate-900 text-sm sm:text-base font-medium rounded-2xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 focus:outline-hidden transition-all placeholder:text-slate-400"
           />
           {searchQuery ? (
             <button
@@ -119,60 +119,57 @@ export const ProductFeed: React.FC<ProductFeedProps> = () => {
           )}
         </div>
 
-        {/* Quick Tag Recommendations / Category Horizontal Bar */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Quick Category Horizontal Slider (Visible on Desktop/Tablet) */}
-          <div className="hidden md:flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 select-none">
-            {categories.map((cat) => {
-              const isSelected = activeCategory === cat.id;
-              const count = cat.id === 'all' 
-                ? products.length 
-                : products.filter(p => p.category === cat.id).length;
+        {/* Quick Category Horizontal Slider (Visible on All Screen Sizes including Mobile) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none w-full">
+          {categories.map((cat) => {
+            const isSelected = activeCategory === cat.id;
+            const count = cat.id === 'all' 
+              ? products.length 
+              : products.filter(p => p.category === cat.id).length;
 
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setActiveCategory(cat.id);
-                    if (searchQuery) setSearchQuery('');
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-all ${
-                    isSelected
-                      ? 'bg-amber-600 text-white shadow-xs scale-102'
-                      : 'bg-white text-slate-700 hover:bg-slate-200/80 border border-slate-200/70'
-                  }`}
-                >
-                  <span className={isSelected ? 'text-amber-200' : 'text-amber-600'}>
-                    {ICON_MAP[cat.icon] || <Layers className="w-4 h-4" />}
-                  </span>
-                  <span>{cat.nameBn || cat.name}</span>
-                  <span className={`text-xs px-1.5 py-0.2 rounded-full font-bold ${
-                    isSelected ? 'bg-amber-700/60 text-white' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick Search Tag Chips on Mobile */}
-          <div className="flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 select-none">
-            <span className="text-xs font-black text-slate-600 shrink-0">পপুলার:</span>
-            {POPULAR_SEARCH_TAGS.map((tag) => (
+            return (
               <button
-                key={tag}
-                onClick={() => setSearchQuery(tag)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-colors border ${
-                  searchQuery === tag
-                    ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                    : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200/80'
+                key={cat.id}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  if (searchQuery) setSearchQuery('');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-all ${
+                  isSelected
+                    ? 'bg-amber-600 text-white shadow-xs scale-102 ring-1 ring-amber-500'
+                    : 'bg-white text-slate-700 hover:bg-slate-200/80 border border-slate-200/70'
                 }`}
               >
-                {tag}
+                <span className={isSelected ? 'text-amber-200' : 'text-amber-600'}>
+                  {ICON_MAP[cat.icon] || <Layers className="w-4 h-4" />}
+                </span>
+                <span>{cat.nameBn || cat.name}</span>
+                <span className={`text-[11px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold ${
+                  isSelected ? 'bg-amber-700/60 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {count}
+                </span>
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+
+        {/* Quick Search Tag Chips on Mobile & Tablet */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none text-xs">
+          <span className="text-[11px] font-black text-slate-500 shrink-0">পপুলার:</span>
+          {POPULAR_SEARCH_TAGS.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSearchQuery(tag)}
+              className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-colors border ${
+                searchQuery === tag
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200/80'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
         </div>
       </div>
 

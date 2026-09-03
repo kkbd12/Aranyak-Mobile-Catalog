@@ -118,13 +118,13 @@ export const CheckoutModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
       <div 
         id="checkout-modal-container"
-        className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 animate-scale-in"
+        className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 animate-scale-in"
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 pt-safe sm:pt-4 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-xs">
               <ShoppingBag className="w-5 h-5" />
@@ -144,33 +144,41 @@ export const CheckoutModal: React.FC = () => {
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 flex-1 overflow-y-auto pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
           {/* Cart Items Preview */}
           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2">
             <span className="text-[11px] font-bold text-slate-700 block">
               অর্ডারকৃত পণ্যের তালিকা ({cart.length}টি আইটেম):
             </span>
             <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-              {cart.map(({ product, quantity }) => (
-                <div key={product.id} className="flex items-center justify-between text-xs bg-white p-2 rounded-xl border border-slate-100">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-black text-amber-700">{quantity}×</span>
-                    <div className="min-w-0">
-                      <span className="font-semibold text-slate-900 truncate block">
-                        {product.nameBn || product.name}
-                      </span>
-                      {product.unit && (
-                        <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-1 py-0.2 rounded font-medium inline-block">
-                          {product.unit}
+              {cart.map(({ product, quantity, selectedVariant }) => {
+                const unitPrice = selectedVariant ? selectedVariant.price : product.price;
+                const displayUnit = selectedVariant 
+                  ? (selectedVariant.nameBn || selectedVariant.weight) 
+                  : product.unit;
+                const itemKey = selectedVariant ? `${product.id}-${selectedVariant.id}` : product.id;
+
+                return (
+                  <div key={itemKey} className="flex items-center justify-between text-xs bg-white p-2 rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-black text-amber-700">{quantity}×</span>
+                      <div className="min-w-0">
+                        <span className="font-semibold text-slate-900 truncate block">
+                          {product.nameBn || product.name}
                         </span>
-                      )}
+                        {displayUnit && (
+                          <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-1 py-0.2 rounded font-medium inline-block">
+                            {displayUnit}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    <span className="font-bold text-slate-800 shrink-0 ml-2">
+                      {settings.currencySymbol}{unitPrice * quantity}
+                    </span>
                   </div>
-                  <span className="font-bold text-slate-800 shrink-0 ml-2">
-                    {settings.currencySymbol}{product.price * quantity}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

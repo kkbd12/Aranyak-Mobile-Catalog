@@ -64,13 +64,13 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
       <div 
         id="order-confirmation-container"
-        className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 animate-scale-in"
+        className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 animate-scale-in"
       >
         {/* Success Header */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-6 text-center relative">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-5 sm:p-6 text-center relative pt-safe sm:pt-6 shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
@@ -93,7 +93,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
         </div>
 
         {/* Receipt Details Body */}
-        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto print:max-h-none">
+        <div className="p-4 sm:p-5 space-y-4 flex-1 overflow-y-auto print:max-h-none">
           {/* Order Meta Info */}
           <div className="flex items-center justify-between text-xs bg-slate-50 p-3 rounded-xl border border-slate-200/80">
             <div>
@@ -184,7 +184,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({ 
         </div>
 
         {/* Footer Action Buttons */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2">
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] shrink-0">
           <button
             onClick={handlePrint}
             className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 flex items-center gap-1.5 transition-colors"

@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
   const pendingOrdersCount = orders.filter(o => o.status === 'pending' || o.status === 'preparing').length;
 
   return (
-    <header id="app-header" className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <header id="app-header" className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs pt-safe">
       {/* Admin Top Status Bar (Only visible when Admin is logged in) */}
       {isAdminAuthenticated && (
         <div className="bg-slate-900 text-slate-200 px-3 sm:px-4 py-1.5 flex items-center justify-between text-xs border-b border-slate-800">
