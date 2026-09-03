@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   X, 
   Plus, 
@@ -9,7 +9,8 @@ import {
   Package, 
   Tag, 
   Check,
-  Wand2
+  Wand2,
+  RotateCcw
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { INITIAL_PRESET_IMAGES } from '../data/initialData';
@@ -27,22 +28,57 @@ export const AddProductModal: React.FC = () => {
   const [name, setName] = useState('');
   const [nameBn, setNameBn] = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState<number | ''>(120);
-  const [costPrice, setCostPrice] = useState<number | ''>(85);
-  const [category, setCategory] = useState(categories[1]?.id || 'ground_spices');
+  const [price, setPrice] = useState<number | ''>('');
+  const [costPrice, setCostPrice] = useState<number | ''>('');
+  const [category, setCategory] = useState(categories.find(c => c.id !== 'all')?.id || 'ground_spices');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingNewCat, setIsCreatingNewCat] = useState(false);
-  const [image, setImage] = useState(INITIAL_PRESET_IMAGES[0].url);
+  const [image, setImage] = useState(INITIAL_PRESET_IMAGES[0]?.url || '');
   const [customImageUrl, setCustomImageUrl] = useState('');
-  const [stock, setStock] = useState<number | ''>(30);
-  const [lowStockThreshold, setLowStockThreshold] = useState<number | ''>(6);
+  const [stock, setStock] = useState<number | ''>('');
+  const [lowStockThreshold, setLowStockThreshold] = useState<number | ''>(5);
   const [sku, setSku] = useState('');
-  const [unit, setUnit] = useState('250g Pack');
+  const [unit, setUnit] = useState('1 kg Pack');
   const [isCustomUnit, setIsCustomUnit] = useState(false);
   const [customUnitInput, setCustomUnitInput] = useState('');
-  const [tagsInput, setTagsInput] = useState('১০০% খাঁটি, রোদে শুকানো');
-  const [isPopular, setIsPopular] = useState(true);
+  const [tagsInput, setTagsInput] = useState('');
+  const [isPopular, setIsPopular] = useState(false);
   const [isSpecial, setIsSpecial] = useState(false);
+
+  // Clear / reset all form fields to a pristine blank state
+  const resetForm = useCallback(() => {
+    setName('');
+    setNameBn('');
+    setDescription('');
+    setPrice('');
+    setCostPrice('');
+    setCategory(categories.find(c => c.id !== 'all')?.id || 'ground_spices');
+    setNewCategoryName('');
+    setIsCreatingNewCat(false);
+    setImage(INITIAL_PRESET_IMAGES[0]?.url || '');
+    setCustomImageUrl('');
+    setStock('');
+    setLowStockThreshold(5);
+    setSku('');
+    setUnit('1 kg Pack');
+    setIsCustomUnit(false);
+    setCustomUnitInput('');
+    setTagsInput('');
+    setIsPopular(false);
+    setIsSpecial(false);
+  }, [categories]);
+
+  // Whenever modal opens, guarantee all previous inputs are completely cleared
+  useEffect(() => {
+    if (isAddProductOpen) {
+      resetForm();
+    }
+  }, [isAddProductOpen, resetForm]);
+
+  const handleClose = () => {
+    resetForm();
+    setIsAddProductOpen(false);
+  };
 
   if (!isAddProductOpen) return null;
 
@@ -150,6 +186,7 @@ export const AddProductModal: React.FC = () => {
       isSpecial,
     });
 
+    resetForm();
     setIsAddProductOpen(false);
   };
 
@@ -171,13 +208,24 @@ export const AddProductModal: React.FC = () => {
             </div>
           </div>
 
-          <button
-            id="close-add-product-btn"
-            onClick={() => setIsAddProductOpen(false)}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="text-xs font-semibold text-slate-600 hover:text-amber-800 hover:bg-amber-50 border border-slate-200 px-2.5 py-1.5 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+              title="ইনপুট ফর্ম ফাঁকা করুন"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>রিসেট</span>
+            </button>
+            <button
+              id="close-add-product-btn"
+              onClick={handleClose}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Quick Fill Helpers for Spice & Groceries */}
@@ -214,6 +262,15 @@ export const AddProductModal: React.FC = () => {
               className="px-2 py-1 bg-white hover:bg-amber-100 text-slate-700 rounded-lg border border-amber-200 font-semibold transition-colors"
             >
               🌾 চিনিগুঁড়া চাল
+            </button>
+            <button
+              type="button"
+              onClick={resetForm}
+              className="px-2 py-1 bg-white hover:bg-rose-50 text-rose-600 rounded-lg border border-rose-200 font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+              title="সব ইনপুট খালি করুন"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>ফাঁকা করুন</span>
             </button>
           </div>
         </div>
