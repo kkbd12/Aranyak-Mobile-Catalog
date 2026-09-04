@@ -145,6 +145,24 @@ export const StoreSettingsModal: React.FC = () => {
             />
           </div>
 
+          {/* Store Logo & Favicon Showcase */}
+          <div className="p-3 bg-amber-50/60 border border-amber-200/90 rounded-2xl flex items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-white border border-amber-200 p-1 flex items-center justify-center shrink-0 shadow-xs">
+              <img 
+                src="/favicon.svg" 
+                alt="Store Favicon Logo" 
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-xs font-bold text-slate-800 block">স্টোর লোগো ও ফেভিকন (Active Favicon)</span>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                ব্রাউজার ট্যাব ফেভিকন ও স্টোর হেডারে আপনার দেওয়া অর্গানিক মশলা ও ভোজ্য তেলের গোল্ডেন লোগোটি সক্রিয় রয়েছে।
+              </p>
+            </div>
+          </div>
+
           {/* Store Name & Tagline */}
           <div className="space-y-3">
             <div>
