@@ -11,8 +11,9 @@ import {
   Edit3
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { Product } from '../types';
+import { Product, ProductVariant } from '../types';
 import { INITIAL_PRESET_IMAGES } from '../data/initialData';
+import { ProductVariantEditor } from './ProductVariantEditor';
 
 interface EditProductModalProps {
   product: Product | null;
@@ -64,6 +65,10 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, isO
   const [isSpecial, setIsSpecial] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
+  // Multi-weight / Variants State
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+
   useEffect(() => {
     setIsConfirmingDelete(false);
     if (product) {
@@ -94,6 +99,10 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, isO
       setTagsInput(product.tags ? product.tags.join(', ') : '');
       setIsPopular(!!product.isPopular);
       setIsSpecial(!!product.isSpecial);
+
+      const existingVariants = product.variants && product.variants.length > 0 ? product.variants : [];
+      setVariants(existingVariants);
+      setHasVariants(existingVariants.length > 0);
     }
   }, [product, categories]);
 
@@ -101,7 +110,14 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, isO
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || price === '' || stock === '') return;
+    if (hasVariants) {
+      if (variants.length === 0) {
+        alert('অনুগ্রহ করে অন্তত একটি ওজন/সাইজের ভ্যারিয়েন্ট যোগ করুন।');
+        return;
+      }
+    } else {
+      if (!name || price === '' || stock === '') return;
+    }
 
     const finalImage = customImageUrl.trim() || image || product.image;
     const finalUnit = isCustomUnit 
@@ -113,18 +129,34 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, isO
       .map(t => t.trim())
       .filter(Boolean);
 
+    const totalVariantStock = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    const minVariantPrice = variants.length > 0 ? Math.min(...variants.map(v => Number(v.price) || 0)) : 0;
+
+    const finalPrice = hasVariants && variants.length > 0 
+      ? (price !== '' ? Number(price) : minVariantPrice) 
+      : Number(price);
+
+    const finalStock = hasVariants && variants.length > 0 
+      ? (stock !== '' ? Number(stock) : totalVariantStock) 
+      : Number(stock);
+
+    const finalCostPrice = costPrice !== '' 
+      ? Number(costPrice) 
+      : (hasVariants && variants[0]?.costPrice !== undefined ? variants[0].costPrice : undefined);
+
     updateProduct(product.id, {
       name: name.trim(),
       nameBn: nameBn.trim() || undefined,
       description: description.trim(),
-      price: Number(price),
-      costPrice: costPrice !== '' ? Number(costPrice) : undefined,
+      price: finalPrice,
+      costPrice: finalCostPrice,
       category,
       image: finalImage,
-      stock: Number(stock),
+      stock: finalStock,
       lowStockThreshold: Number(lowStockThreshold) || 5,
       sku: sku.trim() || product.sku,
       unit: finalUnit,
+      variants: hasVariants && variants.length > 0 ? variants : undefined,
       tags: parsedTags,
       isPopular,
       isSpecial,
@@ -213,19 +245,47 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, isO
             </select>
           </div>
 
+          {/* Multi-weight / Size Variants Configuration (Method 2) */}
+          <ProductVariantEditor
+            enabled={hasVariants}
+            onToggleEnabled={(enabled) => {
+              setHasVariants(enabled);
+              if (enabled && variants.length === 0) {
+                setVariants([
+                  { id: `v-1-${Date.now()}`, unit: '২৫০ গ্রাম', price: price ? Number(price) : 100, stock: stock ? Math.round(Number(stock) * 0.5) : 25, sku: `${sku || 'ITEM'}-250` },
+                  { id: `v-2-${Date.now()}`, unit: '৫০০ গ্রাম', price: price ? Math.round(Number(price) * 1.9) : 190, stock: stock ? Math.round(Number(stock) * 0.3) : 20, sku: `${sku || 'ITEM'}-500` },
+                  { id: `v-3-${Date.now()}`, unit: '১ কেজি', price: price ? Math.round(Number(price) * 3.6) : 360, stock: stock ? Math.round(Number(stock) * 0.2) : 15, sku: `${sku || 'ITEM'}-1KG` },
+                ]);
+              }
+            }}
+            variants={variants}
+            onChange={(newVariants) => {
+              setVariants(newVariants);
+              if (newVariants.length > 0) {
+                const minP = Math.min(...newVariants.map(v => Number(v.price) || 0));
+                const totS = newVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+                if (price === '' || price === 0) setPrice(minP);
+                setStock(totS);
+              }
+            }}
+            currencySymbol={settings.currencySymbol}
+            productSkuBase={sku || 'ITEM'}
+          />
+
           {/* Pricing & Stock Details */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2.5 ${hasVariants ? 'bg-slate-50/80 p-2.5 rounded-xl border border-slate-200' : ''}`}>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Price ({settings.currencySymbol}) *
+                {hasVariants ? `Base Price (${settings.currencySymbol})` : `Price (${settings.currencySymbol}) *`}
               </label>
               <input
                 type="number"
                 min="1"
                 value={price}
                 onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder={hasVariants ? "অটো ক্যালকুলেট" : "দাম"}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:border-indigo-500 font-bold text-indigo-700"
-                required
+                required={!hasVariants}
               />
             </div>
 
@@ -244,15 +304,16 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, isO
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Stock (বর্তমান মজুদ) *
+                {hasVariants ? "Total Stock (অটো)" : "Stock (বর্তমান মজুদ) *"}
               </label>
               <input
                 type="number"
                 min="0"
                 value={stock}
                 onChange={(e) => setStock(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder={hasVariants ? "অটো যোগ হবে" : "মজুদ"}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:border-indigo-500 font-bold text-emerald-700"
-                required
+                required={!hasVariants}
               />
             </div>
 

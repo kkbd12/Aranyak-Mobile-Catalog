@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { INITIAL_PRESET_IMAGES } from '../data/initialData';
+import { ProductVariant } from '../types';
+import { ProductVariantEditor } from './ProductVariantEditor';
 
 export const AddProductModal: React.FC = () => {
   const { 
@@ -45,6 +47,10 @@ export const AddProductModal: React.FC = () => {
   const [isPopular, setIsPopular] = useState(false);
   const [isSpecial, setIsSpecial] = useState(false);
 
+  // Multi-weight / Variants State
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+
   // Clear / reset all form fields to a pristine blank state
   const resetForm = useCallback(() => {
     setName('');
@@ -66,6 +72,8 @@ export const AddProductModal: React.FC = () => {
     setTagsInput('');
     setIsPopular(false);
     setIsSpecial(false);
+    setHasVariants(false);
+    setVariants([]);
   }, [categories]);
 
   // Whenever modal opens, guarantee all previous inputs are completely cleared
@@ -145,7 +153,16 @@ export const AddProductModal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || price === '' || stock === '') return;
+
+    // If variants are enabled, ensure at least one variant is configured
+    if (hasVariants) {
+      if (variants.length === 0) {
+        alert('অনুগ্রহ করে অন্তত একটি ওজন/সাইজের ভ্যারিয়েন্ট যোগ করুন।');
+        return;
+      }
+    } else {
+      if (!name || price === '' || stock === '') return;
+    }
 
     let finalCategory = category;
 
@@ -169,18 +186,34 @@ export const AddProductModal: React.FC = () => {
       ? (customUnitInput.trim() || 'Pack') 
       : (unit.trim() || 'Pack');
 
+    const totalVariantStock = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    const minVariantPrice = variants.length > 0 ? Math.min(...variants.map(v => Number(v.price) || 0)) : 0;
+
+    const finalPrice = hasVariants && variants.length > 0 
+      ? (price !== '' ? Number(price) : minVariantPrice) 
+      : Number(price);
+
+    const finalStock = hasVariants && variants.length > 0 
+      ? (stock !== '' ? Number(stock) : totalVariantStock) 
+      : Number(stock);
+
+    const finalCostPrice = costPrice !== '' 
+      ? Number(costPrice) 
+      : (hasVariants && variants[0]?.costPrice !== undefined ? variants[0].costPrice : undefined);
+
     addProduct({
       name: name.trim(),
       nameBn: nameBn.trim() || undefined,
       description: description.trim() || 'উন্নতমানের ১০০% খাঁটি ও নির্ভেজাল পণ্য।',
-      price: Number(price),
-      costPrice: costPrice !== '' ? Number(costPrice) : undefined,
+      price: finalPrice,
+      costPrice: finalCostPrice,
       category: finalCategory,
       image: finalImage,
-      stock: Number(stock),
+      stock: finalStock,
       lowStockThreshold: Number(lowStockThreshold) || 5,
       sku: finalSku,
       unit: finalUnit,
+      variants: hasVariants && variants.length > 0 ? variants : undefined,
       tags: parsedTags,
       isPopular,
       isSpecial,
@@ -350,11 +383,56 @@ export const AddProductModal: React.FC = () => {
             )}
           </div>
 
-          {/* Pricing & Stock Details (Fully Automated Inventory Config) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {/* Multi-weight / Size Variants Configuration (Method 2) */}
+          <ProductVariantEditor
+            enabled={hasVariants}
+            onToggleEnabled={(enabled) => {
+              setHasVariants(enabled);
+              if (enabled && variants.length === 0) {
+                // Initialize with common suggestions based on category
+                if (category === 'ground_spices' || category === 'whole_spices') {
+                  setVariants([
+                    { id: `v-1-${Date.now()}`, unit: '১০০ গ্রাম', price: price ? Math.round(Number(price) * 0.45) : 50, stock: 25, sku: `${sku || 'ITEM'}-100` },
+                    { id: `v-2-${Date.now()}`, unit: '২৫০ গ্রাম', price: price ? Number(price) : 110, stock: 35, sku: `${sku || 'ITEM'}-250` },
+                    { id: `v-3-${Date.now()}`, unit: '৫০০ গ্রাম', price: price ? Math.round(Number(price) * 1.9) : 210, stock: 20, sku: `${sku || 'ITEM'}-500` },
+                    { id: `v-4-${Date.now()}`, unit: '১ কেজি', price: price ? Math.round(Number(price) * 3.6) : 400, stock: 15, sku: `${sku || 'ITEM'}-1KG` },
+                  ]);
+                } else if (category === 'oils_ghee') {
+                  setVariants([
+                    { id: `v-1-${Date.now()}`, unit: '২৫০ মিলি', price: price ? Math.round(Number(price) * 0.3) : 90, stock: 20, sku: `${sku || 'ITEM'}-250M` },
+                    { id: `v-2-${Date.now()}`, unit: '৫০০ মিলি', price: price ? Math.round(Number(price) * 0.55) : 170, stock: 30, sku: `${sku || 'ITEM'}-500M` },
+                    { id: `v-3-${Date.now()}`, unit: '১ লিটার', price: price ? Number(price) : 320, stock: 25, sku: `${sku || 'ITEM'}-1L` },
+                    { id: `v-4-${Date.now()}`, unit: '৫ লিটার', price: price ? Math.round(Number(price) * 4.8) : 1550, stock: 10, sku: `${sku || 'ITEM'}-5L` },
+                  ]);
+                } else {
+                  setVariants([
+                    { id: `v-1-${Date.now()}`, unit: '৫০০ গ্রাম', price: price ? Math.round(Number(price) * 0.55) : 80, stock: 25, sku: `${sku || 'ITEM'}-500` },
+                    { id: `v-2-${Date.now()}`, unit: '১ কেজি', price: price ? Number(price) : 150, stock: 35, sku: `${sku || 'ITEM'}-1KG` },
+                    { id: `v-3-${Date.now()}`, unit: '৫ কেজি', price: price ? Math.round(Number(price) * 4.8) : 720, stock: 15, sku: `${sku || 'ITEM'}-5KG` },
+                  ]);
+                }
+              }
+            }}
+            variants={variants}
+            onChange={(newVariants) => {
+              setVariants(newVariants);
+              if (newVariants.length > 0) {
+                // Auto-fill price & stock display
+                const minP = Math.min(...newVariants.map(v => Number(v.price) || 0));
+                const totS = newVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+                if (price === '' || price === 0) setPrice(minP);
+                setStock(totS);
+              }
+            }}
+            currencySymbol={settings.currencySymbol}
+            productSkuBase={sku || 'ITEM'}
+          />
+
+          {/* Pricing & Stock Details (Single or Base Fallback) */}
+          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2.5 ${hasVariants ? 'bg-slate-50/80 p-2.5 rounded-xl border border-slate-200' : ''}`}>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Selling Price ({settings.currencySymbol}) *
+                {hasVariants ? `Base Price (${settings.currencySymbol})` : `Selling Price (${settings.currencySymbol}) *`}
               </label>
               <input
                 id="new-product-price"
@@ -362,8 +440,9 @@ export const AddProductModal: React.FC = () => {
                 min="1"
                 value={price}
                 onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder={hasVariants ? "অটো ক্যালকুলেট" : "যেমন: ১২০"}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:border-amber-500 font-bold text-amber-700"
-                required
+                required={!hasVariants}
               />
             </div>
 
@@ -383,7 +462,7 @@ export const AddProductModal: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Initial Stock *
+                {hasVariants ? "Total Stock (অটো)" : "Initial Stock *"}
               </label>
               <input
                 id="new-product-stock"
@@ -391,8 +470,9 @@ export const AddProductModal: React.FC = () => {
                 min="0"
                 value={stock}
                 onChange={(e) => setStock(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder={hasVariants ? "অটো যোগ হবে" : "যেমন: ৫০"}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:border-amber-500 font-bold text-emerald-700"
-                required
+                required={!hasVariants}
               />
             </div>
 

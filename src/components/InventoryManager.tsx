@@ -474,7 +474,21 @@ export const InventoryManager: React.FC = () => {
                                     {product.unit}
                                   </span>
                                 )}
+                                {product.variants && product.variants.length > 0 && (
+                                  <span className="text-[10px] font-extrabold text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.2 rounded-md" title={product.variants.map(v => `${v.unit}: ${settings.currencySymbol}${v.price} (মজুদ: ${v.stock})`).join(', ')}>
+                                    📦 {product.variants.length}টি ভ্যারিয়েন্ট
+                                  </span>
+                                )}
                               </div>
+                              {product.variants && product.variants.length > 0 && (
+                                <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 flex-wrap">
+                                  {product.variants.map((v, vIdx) => (
+                                    <span key={v.id || vIdx} className="bg-slate-100 px-1.5 py-0.5 rounded text-[9px] font-medium">
+                                      {v.unit}: <b className="text-slate-700">{settings.currencySymbol}{v.price}</b> ({v.stock})
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -486,7 +500,18 @@ export const InventoryManager: React.FC = () => {
 
                         {/* Price */}
                         <td className="py-3 px-3 font-bold text-amber-700">
-                          {settings.currencySymbol}{product.price}
+                          {product.variants && product.variants.length > 0 ? (
+                            <div>
+                              <span>
+                                {settings.currencySymbol}{Math.min(...product.variants.map(v => v.price))} - {settings.currencySymbol}{Math.max(...product.variants.map(v => v.price))}
+                              </span>
+                              <span className="block text-[10px] text-slate-400 font-normal">
+                                ভ্যারিয়েন্ট রেঞ্জ
+                              </span>
+                            </div>
+                          ) : (
+                            <span>{settings.currencySymbol}{product.price}</span>
+                          )}
                         </td>
 
                         {/* Current Stock */}

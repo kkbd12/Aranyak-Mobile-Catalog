@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Star, 
@@ -6,10 +6,10 @@ import {
   Minus, 
   Flame, 
   Sparkles, 
-  Tag, 
   PackageCheck,
   ShieldCheck,
-  Package
+  Package,
+  Check
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
@@ -23,19 +23,57 @@ export const ProductDetailModal: React.FC = () => {
     updateCartQuantity 
   } = useStore();
 
-  if (!selectedProduct) return null;
-
   const product = selectedProduct;
-  const cartItem = cart.find(item => item.product.id === product.id);
+
+  const hasVariants = Boolean(product?.variants && product.variants.length > 0);
+  const [selectedVariantId, setSelectedVariantId] = useState<string>(() => {
+    if (product?.variants && product.variants.length > 0) {
+      return product.variants[0].id;
+    }
+    return '';
+  });
+
+  // Keep selected variant synchronized when opened product changes
+  useEffect(() => {
+    if (product?.variants && product.variants.length > 0) {
+      setSelectedVariantId(product.variants[0].id);
+    } else {
+      setSelectedVariantId('');
+    }
+  }, [product?.id]);
+
+  if (!product) return null;
+
+  const activeVariant = hasVariants
+    ? (product.variants?.find(v => v.id === selectedVariantId) || product.variants?.[0])
+    : undefined;
+
+  const currentPrice = activeVariant ? activeVariant.price : product.price;
+  const currentUnit = activeVariant ? activeVariant.unit : product.unit;
+  const currentStock = activeVariant ? activeVariant.stock : product.stock;
+
+  const cartItem = cart.find(item => 
+    item.product.id === product.id && 
+    (activeVariant ? item.selectedVariant?.id === activeVariant.id : !item.selectedVariant)
+  );
   const quantity = cartItem ? cartItem.quantity : 0;
 
-  const isOutOfStock = product.stock <= 0;
-  const isLowStock = product.stock > 0 && product.stock <= product.lowStockThreshold;
-  const isMaxStockReached = quantity >= product.stock;
+  const isOutOfStock = currentStock <= 0;
+  const isLowStock = currentStock > 0 && currentStock <= (product.lowStockThreshold || 5);
+  const isMaxStockReached = quantity >= currentStock;
 
   const handleAdd = () => {
     if (isOutOfStock || isMaxStockReached) return;
-    addToCart(product, undefined, 1);
+    addToCart(product, activeVariant, 1);
+  };
+
+  const handleIncrement = () => {
+    if (isMaxStockReached) return;
+    updateCartQuantity(product.id, quantity + 1, activeVariant?.id);
+  };
+
+  const handleDecrement = () => {
+    updateCartQuantity(product.id, quantity - 1, activeVariant?.id);
   };
 
   return (
@@ -56,7 +94,7 @@ export const ProductDetailModal: React.FC = () => {
             <button
               id="close-product-detail-btn"
               onClick={() => setSelectedProduct(null)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-xs transition-colors shadow-md"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-xs transition-colors shadow-md cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -106,6 +144,73 @@ export const ProductDetailModal: React.FC = () => {
               {product.description}
             </p>
 
+            {/* MULTI-WEIGHT / VARIANT SELECTOR */}
+            {hasVariants && (
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-amber-700" />
+                    ওজন ও সাইজ নির্বাচন করুন:
+                  </span>
+                  <span className="text-[11px] text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/80">
+                    {product.variants!.length}টি সাইজ উপলব্ধ
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {product.variants!.map((v) => {
+                    const isSelected = activeVariant?.id === v.id;
+                    const isVOut = v.stock <= 0;
+                    const vCartItem = cart.find(ci => ci.product.id === product.id && ci.selectedVariant?.id === v.id);
+                    const vQty = vCartItem ? vCartItem.quantity : 0;
+
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setSelectedVariantId(v.id)}
+                        disabled={isVOut}
+                        className={`p-3 rounded-2xl border text-left transition-all relative cursor-pointer active:scale-95 ${
+                          isSelected
+                            ? 'bg-amber-50/90 border-amber-500 shadow-sm ring-2 ring-amber-400/40'
+                            : isVOut
+                            ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
+                            : 'bg-white border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs sm:text-sm truncate ${isSelected ? 'text-amber-950 font-black' : 'text-slate-800 font-bold'}`}>
+                            {v.unit}
+                          </span>
+                          {isSelected && (
+                            <div className="w-4 h-4 rounded-full bg-amber-600 text-white flex items-center justify-center shrink-0">
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-baseline justify-between gap-1 mt-1.5">
+                          <span className={`text-sm sm:text-base font-black ${isSelected ? 'text-amber-800' : 'text-slate-900'}`}>
+                            {settings.currencySymbol}{v.price}
+                          </span>
+                          <span className={`text-[10px] font-semibold ${isVOut ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                            {isVOut ? 'স্টক শেষ' : `মজুদ ${v.stock}`}
+                          </span>
+                        </div>
+
+                        {vQty > 0 && (
+                          <div className="mt-1 pt-1 border-t border-amber-200/60 text-[10px] text-amber-700 font-bold flex items-center justify-between">
+                            <span>কার্টে আছে:</span>
+                            <span className="font-extrabold">{vQty}টি</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Inventory, Unit / Packet Size & Real-time Stock Metrics */}
             <div className="grid grid-cols-2 gap-2 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/80 text-xs sm:text-sm">
               <div className="flex items-center gap-2.5">
@@ -113,7 +218,7 @@ export const ProductDetailModal: React.FC = () => {
                 <div>
                   <span className="text-xs text-amber-900/70 block font-medium">প্যাকেট সাইজ / ওজন</span>
                   <span className="font-bold text-amber-950 text-sm">
-                    {product.unit || 'Standard Pack'}
+                    {currentUnit || 'Standard Pack'}
                   </span>
                 </div>
               </div>
@@ -123,7 +228,7 @@ export const ProductDetailModal: React.FC = () => {
                 <div>
                   <span className="text-xs text-slate-400 block font-medium">বর্তমান মজুদ (Stock)</span>
                   <span className={`font-bold ${isOutOfStock ? 'text-rose-600' : isLowStock ? 'text-amber-600' : 'text-emerald-700'}`}>
-                    {isOutOfStock ? 'স্টক শেষ (০)' : `${product.stock} ${product.unit || 'প্যাকেট'}`}
+                    {isOutOfStock ? 'স্টক শেষ (০)' : `${currentStock} ${currentUnit || 'প্যাকেট'}`}
                   </span>
                 </div>
               </div>
@@ -153,8 +258,8 @@ export const ProductDetailModal: React.FC = () => {
           <div>
             <span className="text-xs text-slate-400 block font-medium">মূল্য (Price)</span>
             <span className="text-2xl font-black text-amber-800">
-              {settings.currencySymbol}{product.price}
-              {product.unit && <span className="text-xs text-slate-400 font-normal">/{product.unit}</span>}
+              {settings.currencySymbol}{currentPrice}
+              {currentUnit && <span className="text-xs text-slate-400 font-normal">/{currentUnit}</span>}
             </span>
           </div>
 
@@ -162,8 +267,9 @@ export const ProductDetailModal: React.FC = () => {
           {quantity > 0 ? (
             <div className="flex items-center bg-amber-600 text-white rounded-2xl p-1 shadow-md">
               <button
-                onClick={() => updateCartQuantity(product.id, quantity - 1)}
-                className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center active:scale-90 transition-transform"
+                onClick={handleDecrement}
+                className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+                title="Decrease"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -171,13 +277,14 @@ export const ProductDetailModal: React.FC = () => {
                 {quantity}
               </span>
               <button
-                onClick={() => updateCartQuantity(product.id, quantity + 1)}
+                onClick={handleIncrement}
                 disabled={isMaxStockReached}
-                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform cursor-pointer ${
                   isMaxStockReached 
                     ? 'bg-amber-700/50 cursor-not-allowed text-amber-200' 
                     : 'bg-white text-amber-600 hover:bg-amber-50 active:scale-90'
                 }`}
+                title="Increase"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -186,7 +293,7 @@ export const ProductDetailModal: React.FC = () => {
             <button
               onClick={handleAdd}
               disabled={isOutOfStock}
-              className={`px-5 py-3 rounded-2xl text-sm font-extrabold flex items-center gap-1.5 transition-all ${
+              className={`px-5 py-3 rounded-2xl text-sm font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
                 isOutOfStock
                   ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-md active:scale-95'
