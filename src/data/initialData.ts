@@ -1,8 +1,8 @@
 import { Category, Product, StoreSettings } from '../types';
 
 export const INITIAL_SETTINGS: StoreSettings = {
-  storeName: 'খাঁটি মসলা ও সুপার শপ',
-  tagline: '১০০% খাঁটি গুঁড়া ও গোটা মসলা এবং প্রিমিয়াম মুদি বাজার',
+  storeName: 'Aranayak',
+  tagline: '১০০% খাঁটি গুঁড়া ও গোটা মসলা, প্রাকৃতিক তেল এবং প্রিমিয়াম পণ্য',
   currency: 'BDT',
   currencySymbol: '৳',
   taxRate: 0, // No VAT for raw agro goods
@@ -15,7 +15,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   address: 'দোকান নং ১২-১৫, চকবাজার ও কাওরান বাজার, ঢাকা',
   bkashNumber: '01711889900',
   banglaQrNumber: '01711889900',
-  banglaQrMerchantName: 'খাঁটি মসলা ও সুপার শপ',
+  banglaQrMerchantName: 'Aranayak',
 };
 
 export const INITIAL_CATEGORIES: Category[] = [

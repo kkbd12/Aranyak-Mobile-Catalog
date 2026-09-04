@@ -216,7 +216,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEYS.SETTINGS);
-      return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (!parsed.storeName || parsed.storeName === 'Smart Mosla & Super Shop' || parsed.storeName === 'খাঁটি মসলা ও সুপার শপ') {
+          parsed.storeName = 'Aranayak';
+        }
+        return { ...INITIAL_SETTINGS, ...parsed };
+      }
+      return INITIAL_SETTINGS;
     } catch {
       return INITIAL_SETTINGS;
     }
