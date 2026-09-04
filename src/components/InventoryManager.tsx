@@ -15,7 +15,8 @@ import {
   CheckSquare,
   Square,
   AlertCircle,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
@@ -33,6 +34,7 @@ export const InventoryManager: React.FC = () => {
     deleteProduct,
     deleteMultipleProducts,
     setIsAddProductOpen,
+    setIsSettingsOpen,
     lowStockCount,
     outOfStockCount
   } = useStore();
@@ -193,6 +195,16 @@ export const InventoryManager: React.FC = () => {
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Product</span>
+          </button>
+
+          <button
+            id="inv-open-settings-btn"
+            onClick={() => setIsSettingsOpen(true)}
+            className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/90 text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 active:scale-95 transition-all"
+            title="ফেভিকন আপলোড ও দোকান সেটিংস"
+          >
+            <Settings className="w-3.5 h-3.5 text-amber-600" />
+            <span>ফেভিকন ও সেটিংস</span>
           </button>
         </div>
       </div>

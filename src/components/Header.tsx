@@ -84,7 +84,7 @@ export const Header: React.FC = () => {
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-0.5 border border-amber-200/80 shadow-xs shadow-amber-500/10 group-hover:scale-105 transition-transform shrink-0 flex items-center justify-center overflow-hidden">
               <img 
-                src="/favicon.svg" 
+                src={settings.logoUrl || '/favicon.svg'} 
                 alt={settings.storeName} 
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
@@ -215,14 +215,15 @@ export const Header: React.FC = () => {
                 <span className="hidden sm:inline">+ নতুন আইটেম</span>
               </button>
 
-              {/* Settings */}
+              {/* Settings & Favicon */}
               <button
                 id="open-settings-btn"
                 onClick={() => setIsSettingsOpen(true)}
-                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
-                title="Store Settings & PIN"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 rounded-xl text-xs font-bold transition-all active:scale-95"
+                title="Store Settings & Favicon Upload"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-3.5 h-3.5 text-amber-600" />
+                <span className="hidden md:inline">সেটিংস ও ফেভিকন</span>
               </button>
             </div>
           ) : (

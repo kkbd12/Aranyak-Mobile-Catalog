@@ -1,81 +1,110 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
-  <!-- Background disc for pure contrast -->
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@600;700&amp;family=Hind+Siliguri:wght@600;700&amp;display=swap');
+      .brand-title {
+        font-family: 'Noto Serif Bengali', 'Kalpurush', 'SolaimanLipi', 'FreeSerif', 'Lohit Bengali', serif;
+        font-size: 52px;
+        font-weight: 700;
+        fill: #111111;
+        text-anchor: middle;
+        letter-spacing: 1.5px;
+      }
+      .brand-tagline {
+        font-family: 'Noto Serif Bengali', 'Kalpurush', 'SolaimanLipi', 'FreeSerif', 'Lohit Bengali', serif;
+        font-size: 16.5px;
+        font-weight: 600;
+        fill: #222222;
+        text-anchor: middle;
+        letter-spacing: 0.5px;
+      }
+    </style>
+  </defs>
+
+  <!-- Circular background disc for crisp clean contrast -->
   <circle cx="250" cy="250" r="240" fill="#FFFFFF" />
 
-  <!-- 1. OUTER GOLDEN CIRCLE -->
-  <circle cx="250" cy="250" r="208" fill="none" stroke="#CCA43B" stroke-width="4.5" />
+  <!-- 1. ELEGANT GOLDEN CIRCLE BORDER -->
+  <circle cx="250" cy="250" r="226" fill="none" stroke="#CCA43B" stroke-width="4.5" />
 
-  <!-- 2. GINGER / TURMERIC ROOT (Yellow / Golden-amber line art) -->
-  <g stroke="#EEAA1B" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <!-- Main root outline with rounded organic lobes -->
-    <path d="M 188 262 
-             C 172 238, 160 205, 172 172 
-             C 182 142, 218 126, 244 148 
-             C 256 160, 248 185, 258 202 
-             C 272 216, 298 206, 316 220 
-             C 334 234, 334 256, 322 276 
-             C 310 292, 290 294, 294 314 
-             C 298 328, 326 334, 342 346 
-             C 358 358, 355 382, 336 394 
-             C 316 404, 292 392, 282 376 
-             C 270 356, 250 358, 232 366 
-             C 208 376, 178 366, 170 342 
-             C 162 318, 172 292, 188 262 Z" />
+  <!-- 2. GINGER / TURMERIC ROOT (Yellow / Golden line art) -->
+  <!-- Scaled and positioned in upper-center region -->
+  <g stroke="#EEAA1B" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Main root outline with rounded knobby lobes -->
+    <path d="M 205 208 
+             C 192 188, 182 162, 192 135 
+             C 200 111, 228 98, 250 116 
+             C 260 126, 253 146, 261 160 
+             C 272 171, 294 163, 308 174 
+             C 322 186, 323 203, 313 220 
+             C 304 233, 287 234, 290 250 
+             C 294 262, 316 266, 329 276 
+             C 342 286, 339 305, 324 315 
+             C 308 323, 288 313, 280 300 
+             C 270 284, 255 286, 240 292 
+             C 221 300, 197 292, 190 273 
+             C 184 254, 192 232, 205 208 Z" />
 
     <!-- Lobe crease / segment lines -->
     <!-- Top bulb segment creases -->
-    <path d="M 198 178 C 212 170, 230 174, 240 186" />
-    <path d="M 206 156 C 218 150, 230 152, 238 162" />
+    <path d="M 212 140 C 224 133, 238 136, 246 146" />
+    <path d="M 218 122 C 228 117, 238 119, 244 127" />
 
     <!-- Mid-left creases -->
-    <path d="M 186 226 C 200 218, 222 222, 232 236" />
-    <path d="M 188 246 C 200 240, 216 242, 224 252" />
+    <path d="M 203 179 C 214 172, 232 176, 240 187" />
+    <path d="M 205 195 C 214 190, 227 192, 234 200" />
 
     <!-- Lower-center and bottom lobe creases -->
-    <path d="M 216 308 C 230 302, 252 306, 262 320" />
-    <path d="M 284 344 C 298 348, 318 352, 328 366" />
-    <path d="M 226 348 C 238 350, 254 346, 264 338" />
+    <path d="M 227 245 C 238 240, 256 244, 264 255" />
+    <path d="M 282 274 C 293 277, 309 280, 317 292" />
+    <path d="M 235 277 C 245 279, 257 275, 266 269" />
   </g>
 
   <!-- 3. RED CHILI PEPPER (Crimson red line art) -->
-  <g stroke="#BE2729" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+  <g stroke="#BE2729" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" fill="none">
     <!-- Chili Stem at top-left -->
-    <path d="M 146 142 C 140 152, 134 166, 138 176" />
+    <path d="M 171 110 C 166 118, 161 130, 165 137" />
     <!-- Calyx cap -->
-    <path d="M 130 176 C 138 170, 148 172, 154 178" />
+    <path d="M 158 137 C 165 132, 173 134, 178 139" />
 
     <!-- Outer graceful sweeping curve of the chili pepper -->
-    <path d="M 134 178 
-             C 118 214, 114 258, 122 298 
-             C 132 340, 160 374, 204 396 
-             C 248 416, 294 420, 318 410 
-             C 322 408, 324 402, 320 398 
-             C 298 378, 258 352, 218 318 
-             C 178 284, 158 248, 154 214 
-             C 150 194, 152 180, 152 180" />
+    <path d="M 162 139 
+             C 149 168, 146 203, 152 235 
+             C 160 269, 183 296, 218 314 
+             C 253 330, 290 333, 309 325 
+             C 312 323, 314 318, 311 315 
+             C 293 299, 261 278, 229 251 
+             C 197 224, 181 195, 178 168 
+             C 175 152, 176 141, 176 141" />
 
     <!-- Inner contour accent line -->
-    <path d="M 136 240 C 140 278, 160 316, 196 348 C 230 374, 268 390, 300 396" stroke-width="4.2" />
+    <path d="M 163 189 C 167 219, 183 250, 211 275 C 239 296, 269 309, 295 314" stroke-width="3.8" />
   </g>
 
   <!-- 4. GREEN PLANT LEAF SPRIG (Fresh green line art) -->
-  <g stroke="#1A7C3A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+  <g stroke="#1A7C3A" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" fill="none">
     <!-- Main stem arching across from bottom-center to upper-right -->
-    <path d="M 242 328 C 265 284, 292 234, 328 164" />
+    <path d="M 248 261 C 266 226, 288 186, 317 130" />
 
     <!-- Leaf 1 (Top-Left leaf, pointing up-left) -->
-    <path d="M 308 198 C 285 178, 268 142, 276 112 C 298 118, 322 145, 325 175 Z" />
+    <path d="M 301 157 C 283 141, 269 112, 275 88 C 293 93, 312 115, 315 139 Z" />
     <!-- Leaf 1 Central Vein -->
-    <path d="M 308 195 C 298 172, 288 148, 282 120" stroke-width="3.6" />
+    <path d="M 301 155 C 293 136, 285 117, 280 94" stroke-width="3.2" />
 
     <!-- Leaf 2 (Top-Right leaf, pointing up-right) -->
-    <path d="M 326 170 C 330 140, 348 112, 375 102 C 380 130, 370 160, 344 180 Z" />
+    <path d="M 315 135 C 318 111, 333 88, 354 80 C 358 102, 350 126, 330 142 Z" />
     <!-- Leaf 2 Central Vein -->
-    <path d="M 334 165 C 348 148, 360 132, 370 112" stroke-width="3.6" />
+    <path d="M 322 131 C 333 117, 342 104, 350 88" stroke-width="3.2" />
 
     <!-- Leaf 3 (Lower-Right leaf, pointing right) -->
-    <path d="M 316 212 C 340 206, 375 198, 406 182 C 392 210, 360 228, 326 228 Z" />
+    <path d="M 307 169 C 326 164, 354 157, 379 145 C 368 167, 342 181, 315 181 Z" />
     <!-- Leaf 3 Central Vein -->
-    <path d="M 320 216 C 348 212, 372 204, 398 188" stroke-width="3.6" />
+    <path d="M 311 171 C 333 168, 352 162, 372 149" stroke-width="3.2" />
   </g>
+
+  <!-- 5. BENGALI BRAND TITLE "আরণ্যক" -->
+  <text x="250" y="380" class="brand-title">আরণ্যক</text>
+
+  <!-- 6. BENGALI TAGLINE "অরণ্যের শুদ্ধি, রসুইয়ের সমৃদ্ধি" -->
+  <text x="250" y="420" class="brand-tagline">অরণ্যের শুদ্ধি, রসুইয়ের সমৃদ্ধি</text>
 </svg>

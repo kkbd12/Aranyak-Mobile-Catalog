@@ -12,13 +12,14 @@ import {
   Utensils,
   MapPin,
   QrCode,
-  DollarSign
+  DollarSign,
+  Settings
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Order, OrderStatus } from '../types';
 
 export const OrderManager: React.FC = () => {
-  const { orders, updateOrderStatus, settings } = useStore();
+  const { orders, updateOrderStatus, settings, setIsSettingsOpen } = useStore();
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('active');
 
   const filteredOrders = orders.filter(order => {
@@ -92,39 +93,51 @@ export const OrderManager: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-semibold">
+        {/* Filter Switcher & Settings */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-semibold">
+            <button
+              onClick={() => setStatusFilter('active')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                statusFilter === 'active' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Active ({orders.filter(o => o.status === 'pending' || o.status === 'preparing' || o.status === 'ready').length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('completed')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                statusFilter === 'completed' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Completed ({orders.filter(o => o.status === 'completed').length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('cancelled')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                statusFilter === 'cancelled' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Cancelled ({orders.filter(o => o.status === 'cancelled').length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                statusFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              All ({orders.length})
+            </button>
+          </div>
+
           <button
-            onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
-              statusFilter === 'active' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
-            }`}
+            id="order-open-settings-btn"
+            onClick={() => setIsSettingsOpen(true)}
+            className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/90 text-xs font-bold rounded-2xl shadow-xs flex items-center gap-1.5 active:scale-95 transition-all"
+            title="ফেভিকন আপলোড ও দোকান সেটিংস"
           >
-            Active ({orders.filter(o => o.status === 'pending' || o.status === 'preparing' || o.status === 'ready').length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('completed')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
-              statusFilter === 'completed' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            Completed ({orders.filter(o => o.status === 'completed').length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('cancelled')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
-              statusFilter === 'cancelled' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            Cancelled ({orders.filter(o => o.status === 'cancelled').length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
-              statusFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            All ({orders.length})
+            <Settings className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden sm:inline">ফেভিকন ও সেটিংস</span>
           </button>
         </div>
       </div>

@@ -16,6 +16,8 @@ export const INITIAL_SETTINGS: StoreSettings = {
   bkashNumber: '01711889900',
   banglaQrNumber: '01711889900',
   banglaQrMerchantName: 'Aranayak',
+  logoUrl: '/favicon.svg',
+  faviconUrl: '/favicon.svg',
 };
 
 export const INITIAL_CATEGORIES: Category[] = [

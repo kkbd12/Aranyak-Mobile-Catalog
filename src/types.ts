@@ -111,6 +111,8 @@ export interface StoreSettings {
   banglaQrNumber?: string;
   banglaQrMerchantName?: string;
   banglaQrImageUrl?: string;
+  logoUrl?: string;
+  faviconUrl?: string;
   adminPin?: string;
 }
 

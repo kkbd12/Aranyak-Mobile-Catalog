@@ -242,6 +242,25 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [tableNumber, setTableNumber] = useState<string>('Parcel');
   const [orderType, setOrderType] = useState<OrderType>('delivery');
 
+  // Dynamic Title & Favicon Sync
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title = settings.storeName || 'Aranayak';
+      const iconUrl = settings.faviconUrl || settings.logoUrl || '/favicon.svg';
+      const iconLinks = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
+      if (iconLinks.length > 0) {
+        iconLinks.forEach(link => {
+          link.setAttribute('href', iconUrl);
+        });
+      } else {
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.href = iconUrl;
+        document.head.appendChild(link);
+      }
+    }
+  }, [settings.storeName, settings.logoUrl, settings.faviconUrl]);
+
   // --- Real-Time Firestore Sync ---
   useEffect(() => {
     let unsubscribeProducts: (() => void) | null = null;
